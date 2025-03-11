@@ -61,7 +61,7 @@ const Login = () => {
         console.log("✅ Tokens stored in Local Storage");
   
         // ✅ Redirect to Profile
-        router.push("/profile");
+        router.push("/");
       } else {
         console.error("❌ Login failed: No token received");
         setError("Login failed. No token received.");

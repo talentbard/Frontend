@@ -4,7 +4,7 @@ import { useState } from "react";
 const WorkTerms = () => {
   const [workTerms, setWorkTerms] = useState({
     workType: "",
-    availability: "",
+    weeklyAvailability: 20, // Default set to 20 hours
     salaryExpectation: "",
     additionalNotes: "",
   });
@@ -13,8 +13,12 @@ const WorkTerms = () => {
     setWorkTerms({ ...workTerms, [e.target.name]: e.target.value });
   };
 
+  const handleSliderChange = (e) => {
+    setWorkTerms({ ...workTerms, weeklyAvailability: e.target.value });
+  };
+
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Preferred Work Terms</h2>
 
       {/* Work Type */}
@@ -34,17 +38,27 @@ const WorkTerms = () => {
         </select>
       </div>
 
-      {/* Availability */}
+      {/* Weekly Availability (Compact Slider) */}
       <div className="mb-4">
-        <label className="block font-medium text-gray-700">Availability</label>
-        <input
-          type="text"
-          name="availability"
-          placeholder="E.g., Immediate, 1 month notice"
-          value={workTerms.availability}
-          onChange={handleChange}
-          className="border p-2 rounded-md w-full"
-        />
+        <label className="block font-medium text-gray-700">Weekly Availability</label>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600 font-medium">0 hrs</span>
+          <input
+            type="range"
+            name="weeklyAvailability"
+            min="0"
+            max="60"
+            value={workTerms.weeklyAvailability}
+            onChange={handleSliderChange}
+            className="w-3/5 h-2 bg-green-300 rounded-lg appearance-none cursor-pointer 
+                       transition-all duration-300 hover:bg-green-400 
+                       focus:outline-none focus:ring-2 focus:ring-green-500"
+            style={{ WebkitAppearance: "none" }}
+          />
+          <span className="text-gray-600 font-medium">
+            {workTerms.weeklyAvailability} {workTerms.weeklyAvailability >= 60 ? "+" : ""} hrs
+          </span>
+        </div>
       </div>
 
       {/* Salary Expectation */}
