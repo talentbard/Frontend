@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const WorkTerms = () => {
+  const router = useRouter();
   const [workTerms, setWorkTerms] = useState({
     workType: "",
     weeklyAvailability: 20, // Default set to 20 hours
@@ -15,6 +17,13 @@ const WorkTerms = () => {
 
   const handleSliderChange = (e) => {
     setWorkTerms({ ...workTerms, weeklyAvailability: e.target.value });
+  };
+  const handleBack = () => {
+    router.push("/registration/portfolio"); // Navigate to Work Experience page
+  };
+
+  const handleNext = () => {
+    router.push("/registration/language"); // Navigate back to Skills page
   };
 
   return (
@@ -89,8 +98,8 @@ const WorkTerms = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100">Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
           Next
         </button>
       </div>

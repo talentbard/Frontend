@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter for App Router
 
 const WorkExperience = () => {
+  const router = useRouter();
+
+  // State for work experiences
   const [workExperiences, setWorkExperiences] = useState([
     {
       jobTitle: "",
@@ -16,12 +20,16 @@ const WorkExperience = () => {
     },
   ]);
 
+  // Handle input changes
   const handleChange = (index, field, value) => {
-    const updatedExperiences = [...workExperiences];
-    updatedExperiences[index][field] = value;
-    setWorkExperiences(updatedExperiences);
+    setWorkExperiences((prev) =>
+      prev.map((exp, i) =>
+        i === index ? { ...exp, [field]: value } : exp
+      )
+    );
   };
 
+  // Add new experience
   const addExperience = () => {
     setWorkExperiences([
       ...workExperiences,
@@ -39,12 +47,33 @@ const WorkExperience = () => {
     ]);
   };
 
+  // Remove an experience entry
+  const removeExperience = (index) => {
+    setWorkExperiences((prev) => prev.filter((_, i) => i !== index));
+  };
+  const handleNext = () => {
+    router.push("/registration/portfolio"); // Navigate to Work Experience page
+  };
+
+  const handleBack = () => {
+    router.push("/registration/skills"); // Navigate back to Skills page
+  };
+
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Work Experience</h2>
 
       {workExperiences.map((experience, index) => (
-        <div key={index} className="mb-6 border-b pb-6">
+        <div key={index} className="mb-6 border-b pb-6 relative">
+          {workExperiences.length > 1 && (
+            <button
+              onClick={() => removeExperience(index)}
+              className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 rounded-md text-sm"
+            >
+              Remove
+            </button>
+          )}
+
           {/* Job Title */}
           <div className="mb-4">
             <label className="block font-medium text-gray-700">Job Title</label>
@@ -163,8 +192,18 @@ const WorkExperience = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100">Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Next</button>
+        <button
+          className="px-6 py-2 border rounded-md hover:bg-gray-100"
+          onClick={handleBack} // Back to Education Page
+        >
+          Back
+        </button>
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          onClick={handleNext} // Next to Portfolio Page
+        >
+          Next
+        </button>
       </div>
     </div>
   );

@@ -47,22 +47,21 @@ const Signup = () => {
     // API request body
     const requestData = {
       auth_params: {
-        user_id: "string", // Update dynamically if needed
-        other_param: "string",
+        user_id: localStorage.getItem("user_id") || "temp_id", // Use stored user_id or temp
+        other_param: "string", 
       },
       payload: {
         full_name: formData.full_name,
         email_id: formData.email_id,
         phone_no: formData.phone_no,
-        role: isFreelancer ? "freelancer" : "company",
+        role: isFreelancer ? "talent" : "company",
         password: formData.password,
-        admin_key: "demo", // Modify if needed
+        admin_key: "demo",
         ...(isFreelancer ? {} : { company_name: formData.company_name, linked_in: formData.linked_in }),
       },
     };
-
     try {
-      const response = await fetch("http://127.0.0.1:8000/user/signup/", {
+      const response = await fetch("http://13.201.78.9/user/signup/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),

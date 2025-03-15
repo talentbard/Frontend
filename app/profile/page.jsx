@@ -25,8 +25,8 @@ const ProfilePage = () => {
     }
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/user/profile/", {
-            method: "POST",  // ⬅️ Change GET to POST
+        const response = await fetch("http://13.201.78.9/user/profile/", {
+            method: "POST", 
             headers: {
                 "Content-Type": "application/json",
                 "Accesstoken": accessToken,

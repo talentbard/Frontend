@@ -1,7 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const JobPreferences = () => {
+  const router = useRouter();
+
   const [preferences, setPreferences] = useState({
     jobTitle: "",
     workType1: "",
@@ -16,6 +19,13 @@ const JobPreferences = () => {
 
   const handleChange = (field, value) => {
     setPreferences({ ...preferences, [field]: value });
+  };
+  const handleNext = () => {
+    router.push("/registration/status"); // Navigate to Work Experience page
+  };
+
+  const handleBack = () => {
+    router.push("/registration/language"); // Navigate back to Skills page
   };
 
   return (
@@ -151,8 +161,8 @@ const JobPreferences = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100">Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
           Next
         </button>
       </div>

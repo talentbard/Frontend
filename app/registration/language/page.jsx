@@ -1,7 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const LanguageProficiency = () => {
+  const router = useRouter();
+
   const [languages, setLanguages] = useState([
     { name: "", proficiency: "", certification: "" },
   ]);
@@ -19,6 +22,14 @@ const LanguageProficiency = () => {
   const removeLanguage = (index) => {
     const updatedLanguages = languages.filter((_, i) => i !== index);
     setLanguages(updatedLanguages);
+  };
+
+  const handleNext = () => {
+    router.push("/registration/job-preferences"); // Navigate to Work Experience page
+  };
+
+  const handleBack = () => {
+    router.push("/registration/language"); // Navigate back to Skills page
   };
 
   return (
@@ -90,8 +101,8 @@ const LanguageProficiency = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100">Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
           Next
         </button>
       </div>

@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-
+import { useRouter } from "next/navigation";
 const PortfolioReferences = () => {
+  const router = useRouter();
   const [portfolio, setPortfolio] = useState({
     resume: null,
     projectLinks: [""],
@@ -33,6 +34,13 @@ const PortfolioReferences = () => {
       updatedList.splice(index, 1);
       return { ...prev, [type]: updatedList };
     });
+  };
+  const handleBack = () => {
+    router.push("/registration/work-experience"); // Navigate to Work Experience page
+  };
+
+  const handleNext = () => {
+    router.push("/registration/work-terms"); // Navigate back to Skills page
   };
 
   return (
@@ -115,8 +123,8 @@ const PortfolioReferences = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100">Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
           Next
         </button>
       </div>

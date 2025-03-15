@@ -1,7 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const Education = () => {
+  const router = useRouter(); // Initialize the router
+
   const [educationList, setEducationList] = useState([
     { university: "", degree: "", fieldOfStudy: "", graduationDate: "", gpa: "", currentlyPursuing: false }
   ]);
@@ -15,6 +18,14 @@ const Education = () => {
 
   const addEducation = () => {
     setEducationList([...educationList, { university: "", degree: "", fieldOfStudy: "", graduationDate: "", gpa: "", currentlyPursuing: false }]);
+  };
+
+  const handleNext = () => {
+    router.push("/registration/work-experience"); // Navigate to Work Experience page
+  };
+
+  const handleBack = () => {
+    router.push("/registration/skills"); // Navigate back to Skills page
   };
 
   return (
@@ -117,8 +128,12 @@ const Education = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100">Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Next</button>
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>
+          Back
+        </button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
+          Next
+        </button>
       </div>
     </div>
   );

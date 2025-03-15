@@ -7,12 +7,12 @@ const About = () => {
       
       {/* Headline */}
       <h2 className="text-3xl md:text-6xl font-extrabold leading-tight max-w-[1100px]">
-  <span className="text-purple-500 font-playfair italic">
+  <span className="text-blue-500 font-playfair italic">
   India’s Next-Gen On-Demand Talent 
   </span>{" "}
   Platform for Startups to{" "}
   <br></br>
-  <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-playfair italic">
+  <span className="bg-blue-500 bg-clip-text text-transparent font-playfair italic">
     Scale On-Demand
   </span>.
 </h2>
@@ -22,7 +22,7 @@ const About = () => {
 
       {/* Subheadline */}
       <p className="mt-6 text-lg md:text-2xl max-w-[800px] mx-auto leading-snug text-gray-300 font-sans">
-  Hire & manage top IT talent, secure payments with escrow, invest idle cash, and make seamless cross-border payments — all in one dashboard.
+  Hire & manage top Tech talent, secure payments with escrow, invest idle cash, and make seamless cross-border payments — all in one dashboard.
 </p>
 
 
