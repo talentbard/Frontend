@@ -1,31 +1,100 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const Education = () => {
-  const router = useRouter(); // Initialize the router
-
+  const router = useRouter();
+  
   const [educationList, setEducationList] = useState([
     { university: "", degree: "", fieldOfStudy: "", graduationDate: "", gpa: "", currentlyPursuing: false }
   ]);
   const [highestDegree, setHighestDegree] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [authParams, setAuthParams] = useState({ user_id: "", refresh_token: "", access_token: "" });
 
+  // Fetch authentication details from localStorage
+  useEffect(() => {
+    const user_id = localStorage.getItem("user_id");
+    const refresh_token = localStorage.getItem("refresh_token");
+    const access_token = localStorage.getItem("access_token");
+
+    if (user_id && refresh_token && access_token) {
+      setAuthParams({ user_id, refresh_token, access_token });
+    }
+  }, []);
+
+  // Handle input changes
   const handleChange = (index, field, value) => {
-    const updatedEducation = [...educationList];
-    updatedEducation[index][field] = value;
-    setEducationList(updatedEducation);
+    setEducationList((prevList) => {
+      const updatedList = [...prevList];
+      updatedList[index] = { ...updatedList[index], [field]: value };
+      return updatedList;
+    });
   };
 
+  // Add another degree
   const addEducation = () => {
     setEducationList([...educationList, { university: "", degree: "", fieldOfStudy: "", graduationDate: "", gpa: "", currentlyPursuing: false }]);
   };
 
-  const handleNext = () => {
-    router.push("/registration/work-experience"); // Navigate to Work Experience page
+  // Handle back button click
+  const handleBack = () => {
+    router.push("/registration/personal-details");
   };
 
-  const handleBack = () => {
-    router.push("/registration/skills"); // Navigate back to Skills page
+  // Function to handle form submission
+  const handleNext = async () => {
+    const apiUrl = "https://backend.talentbard.com/talent/education/";
+
+    setLoading(true);
+
+    try {
+      const requests = educationList.map((education) => {
+        const payload = {
+          university_name: education.university,
+          college_degree: education.degree,
+          field_of_study: education.fieldOfStudy,
+          graduation_date: education.graduationDate,
+          currently_pursuing: education.currentlyPursuing,
+          gpa: parseFloat(education.gpa) || 0,
+          highest_degree: highestDegree,  // Include highest degree
+          user_id: authParams.user_id,
+        };
+
+        const requestBody = {
+          auth_params: {
+            user_id: authParams.user_id,
+            refresh_token: authParams.refresh_token,
+          },
+          payload: payload,
+        };
+
+        return fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accesstoken": authParams.access_token,
+          },
+          body: JSON.stringify(requestBody),
+        }).then(async (response) => {
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to submit education data. Status: ${response.status}, Error: ${errorText}`);
+          }
+          return response.json();
+        });
+      });
+
+      await Promise.all(requests);
+
+      alert("Education details submitted successfully!"); // Success message
+      router.push("/registration/work-experience");
+    } catch (error) {
+      console.error("Error submitting education data:", error);
+      alert("Failed to submit education details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -131,8 +200,12 @@ const Education = () => {
         <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>
           Back
         </button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
-          Next
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          onClick={handleNext}
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Next"}
         </button>
       </div>
     </div>

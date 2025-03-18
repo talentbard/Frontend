@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 const WorkTerms = () => {
   const router = useRouter();
@@ -11,6 +11,10 @@ const WorkTerms = () => {
     additionalNotes: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
   const handleChange = (e) => {
     setWorkTerms({ ...workTerms, [e.target.name]: e.target.value });
   };
@@ -18,19 +22,69 @@ const WorkTerms = () => {
   const handleSliderChange = (e) => {
     setWorkTerms({ ...workTerms, weeklyAvailability: e.target.value });
   };
+
   const handleBack = () => {
-    router.push("/registration/portfolio"); // Navigate to Work Experience page
+    router.push("/registration/portfolio");
   };
 
-  const handleNext = () => {
-    router.push("/registration/language"); // Navigate back to Skills page
+  const handleNext = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    const user_id = localStorage.getItem("user_id");
+    const access_token = localStorage.getItem("access_token");
+    const refresh_token = localStorage.getItem("refresh_token");
+
+    if (!user_id || !access_token || !refresh_token) {
+      setError("Authentication error. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    const requestBody = {
+      auth_params: {
+        user_id: user_id,
+        refresh_token: refresh_token,
+      },
+      payload: {
+        work_type: workTerms.workType,
+        availability: workTerms.weeklyAvailability.toString(),
+        salary_expectation: workTerms.salaryExpectation,
+        additional_notes: workTerms.additionalNotes,
+        user_id: user_id,
+      },
+    };
+
+    try {
+      const response = await fetch("https://backend.talentbard.com/talent/work-terms/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accesstoken": access_token,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to submit work terms.");
+      }
+
+      setSuccessMessage("Work terms submitted successfully!");
+      setTimeout(() => router.push("/registration/language"), 1500);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Preferred Work Terms</h2>
 
-      {/* Work Type */}
       <div className="mb-4">
         <label className="block font-medium text-gray-700">Work Type</label>
         <select
@@ -47,7 +101,6 @@ const WorkTerms = () => {
         </select>
       </div>
 
-      {/* Weekly Availability (Compact Slider) */}
       <div className="mb-4">
         <label className="block font-medium text-gray-700">Weekly Availability</label>
         <div className="flex items-center gap-3">
@@ -70,7 +123,6 @@ const WorkTerms = () => {
         </div>
       </div>
 
-      {/* Salary Expectation */}
       <div className="mb-4">
         <label className="block font-medium text-gray-700">Salary Expectation</label>
         <input
@@ -83,7 +135,6 @@ const WorkTerms = () => {
         />
       </div>
 
-      {/* Additional Notes */}
       <div className="mb-4">
         <label className="block font-medium text-gray-700">Additional Notes</label>
         <textarea
@@ -96,11 +147,19 @@ const WorkTerms = () => {
         />
       </div>
 
-      {/* Navigation Buttons */}
+      {successMessage && <p className="text-green-600 mb-4">{successMessage}</p>}
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
-          Next
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>
+          Back
+        </button>
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          onClick={handleNext}
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Next"}
         </button>
       </div>
     </div>

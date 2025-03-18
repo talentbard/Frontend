@@ -61,7 +61,7 @@ const Signup = () => {
       },
     };
     try {
-      const response = await fetch("http://backend.talentbard.com/user/signup/", {
+      const response = await fetch("https://backend.talentbard.com/user/signup/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),

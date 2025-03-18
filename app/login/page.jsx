@@ -40,7 +40,7 @@ const Login = () => {
   
     try {
       const response = await axios.post(
-        "http://backend.talentbard.com/user/login/",
+        "https://backend.talentbard.com/user/login/",
         {
           auth_params: {
             user_id: userId || "your_user_id",

@@ -1,15 +1,21 @@
 "use client";
+import NavBar from "./NavBar"; // Left Sidebar
+import Navbar from "../components/Navbar"; // Top Navbar
 
-import NavBar from "./Navbar";  // ✅ Ensure the import path is correct
-
-export default function RegistrationLayout({ children }) {
+export default function Layout({ children }) {
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar Navbar */}
+    <div className="flex mt-3">
+      {/* Left Sidebar */}
       <NavBar />
 
-      {/* Main Content - Adjusted for Sidebar */}
-      <div className="flex-1 p-10 ml-64">{children}</div> 
+      {/* Main Content Area */}
+      <div className="ml-[25%] w-full bg">
+        {/* Top Navbar */}
+        <Navbar />
+
+        {/* Page Content */}
+        <main className="mt-16 p-8">{children}</main>
+      </div>
     </div>
   );
 }

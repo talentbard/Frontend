@@ -1,11 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter for App Router
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const WorkExperience = () => {
   const router = useRouter();
 
-  // State for work experiences
   const [workExperiences, setWorkExperiences] = useState([
     {
       jobTitle: "",
@@ -20,16 +19,25 @@ const WorkExperience = () => {
     },
   ]);
 
-  // Handle input changes
+  const [loading, setLoading] = useState(false);
+  const [authParams, setAuthParams] = useState({ user_id: "", refresh_token: "", access_token: "" });
+
+  useEffect(() => {
+    const user_id = localStorage.getItem("user_id");
+    const access_token = localStorage.getItem("access_token");
+    const refresh_token = localStorage.getItem("refresh_token");
+
+    if (user_id && refresh_token && access_token) {
+      setAuthParams({ user_id, refresh_token, access_token });
+    }
+  }, []);
+
   const handleChange = (index, field, value) => {
     setWorkExperiences((prev) =>
-      prev.map((exp, i) =>
-        i === index ? { ...exp, [field]: value } : exp
-      )
+      prev.map((exp, i) => (i === index ? { ...exp, [field]: value } : exp))
     );
   };
 
-  // Add new experience
   const addExperience = () => {
     setWorkExperiences([
       ...workExperiences,
@@ -47,16 +55,77 @@ const WorkExperience = () => {
     ]);
   };
 
-  // Remove an experience entry
   const removeExperience = (index) => {
     setWorkExperiences((prev) => prev.filter((_, i) => i !== index));
   };
-  const handleNext = () => {
-    router.push("/registration/portfolio"); // Navigate to Work Experience page
+
+  const handleNext = async () => {
+    const apiUrl = "https://backend.talentbard.com/talent/work-experience/";
+    setLoading(true);
+
+    try {
+      for (const exp of workExperiences) {
+        if (
+          !exp.jobTitle ||
+          !exp.company ||
+          !exp.industry ||
+          !exp.startDate ||
+          !exp.responsibilities ||
+          !exp.achievements ||
+          !exp.techUsed ||
+          !exp.projects
+        ) {
+          alert("Please fill all required fields before submitting.");
+          setLoading(false);
+          return;
+        }
+
+        const payload = {
+          auth_params: {
+            user_id: authParams.user_id,
+            refresh_token: authParams.refresh_token,
+          },
+          payload: {
+            job_title: exp.jobTitle,
+            company: exp.company,
+            industry: exp.industry,
+            start_date: exp.startDate,
+            end_date: exp.endDate || null,
+            responsibilities: exp.responsibilities,
+            achievements: exp.achievements,
+            technologies_used: exp.techUsed,
+            projects: exp.projects,
+            user_id: authParams.user_id,
+          },
+        };
+
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accesstoken": authParams.access_token,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to submit work experience. Status: ${response.status}, Error: ${errorText}`);
+        }
+      }
+
+      alert("All work experiences submitted successfully!");
+      router.push("/registration/portfolio");
+    } catch (error) {
+      console.error("Error submitting work experience:", error);
+      alert("Failed to submit work experience. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
-    router.push("/registration/skills"); // Navigate back to Skills page
+    router.push("/registration/skills");
   };
 
   return (
@@ -74,7 +143,6 @@ const WorkExperience = () => {
             </button>
           )}
 
-          {/* Job Title */}
           <div className="mb-4">
             <label className="block font-medium text-gray-700">Job Title</label>
             <input
@@ -86,7 +154,6 @@ const WorkExperience = () => {
             />
           </div>
 
-          {/* Company & Industry */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block font-medium text-gray-700">Company</label>
@@ -110,7 +177,6 @@ const WorkExperience = () => {
             </div>
           </div>
 
-          {/* Start & End Date */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block font-medium text-gray-700">Start Date</label>
@@ -132,7 +198,6 @@ const WorkExperience = () => {
             </div>
           </div>
 
-          {/* Responsibilities */}
           <div className="mb-4">
             <label className="block font-medium text-gray-700">Responsibilities</label>
             <textarea
@@ -143,7 +208,6 @@ const WorkExperience = () => {
             />
           </div>
 
-          {/* Achievements */}
           <div className="mb-4">
             <label className="block font-medium text-gray-700">Achievements</label>
             <textarea
@@ -154,26 +218,21 @@ const WorkExperience = () => {
             />
           </div>
 
-          {/* Technologies Used */}
           <div className="mb-4">
             <label className="block font-medium text-gray-700">Technologies Used</label>
-            <select
+            <input
+              type="text"
+              placeholder="List technologies (comma separated)"
               value={experience.techUsed}
               onChange={(e) => handleChange(index, "techUsed", e.target.value)}
               className="border p-2 rounded-md w-full"
-            >
-              <option value="">Select Technology Used</option>
-              <option value="Git">Git</option>
-              <option value="React">React</option>
-              <option value="JavaScript">JavaScript</option>
-            </select>
+            />
           </div>
 
-          {/* Projects */}
           <div className="mb-4">
             <label className="block font-medium text-gray-700">Projects</label>
             <textarea
-              placeholder="Describe projects worked on"
+              placeholder="Describe key projects"
               value={experience.projects}
               onChange={(e) => handleChange(index, "projects", e.target.value)}
               className="border p-2 rounded-md w-full h-20"
@@ -182,27 +241,14 @@ const WorkExperience = () => {
         </div>
       ))}
 
-      {/* Add Experience Button */}
-      <button
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        onClick={addExperience}
-      >
+      <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" onClick={addExperience}>
         + Add Another Experience
       </button>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button
-          className="px-6 py-2 border rounded-md hover:bg-gray-100"
-          onClick={handleBack} // Back to Education Page
-        >
-          Back
-        </button>
-        <button
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          onClick={handleNext} // Next to Portfolio Page
-        >
-          Next
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext} disabled={loading}>
+          {loading ? "Submitting..." : "Next"}
         </button>
       </div>
     </div>

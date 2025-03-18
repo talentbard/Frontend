@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 const LanguageProficiency = () => {
   const router = useRouter();
-
-  const [languages, setLanguages] = useState([
-    { name: "", proficiency: "", certification: "" },
-  ]);
+  
+  const [languages, setLanguages] = useState([{ name: "", proficiency: "", certification: "" }]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (index, field, value) => {
     const updatedLanguages = [...languages];
@@ -20,16 +19,55 @@ const LanguageProficiency = () => {
   };
 
   const removeLanguage = (index) => {
-    const updatedLanguages = languages.filter((_, i) => i !== index);
-    setLanguages(updatedLanguages);
+    setLanguages(languages.filter((_, i) => i !== index));
   };
 
-  const handleNext = () => {
-    router.push("/registration/job-preferences"); // Navigate to Work Experience page
-  };
+  const submitLanguageData = async () => {
+    const access_token = localStorage.getItem("access_token");
+    const refresh_token = localStorage.getItem("refresh_token");
+    const user_id = localStorage.getItem("user_id");
 
-  const handleBack = () => {
-    router.push("/registration/language"); // Navigate back to Skills page
+    if (!access_token || !user_id || !refresh_token) {
+      console.error("Missing authentication tokens or user ID");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      for (const lang of languages) {
+        const requestBody = {
+          auth_params: { user_id, refresh_token },
+          payload: {
+            language: lang.name,
+            proficiency_level: lang.proficiency,
+            certification: lang.certification,
+            user_id,
+          },
+        };
+
+        const response = await fetch("https://backend.talentbard.com/talent/languages/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accesstoken: access_token,
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Error: ${response.status}`);
+        }
+      }
+
+      console.log("All languages submitted successfully!");
+      router.push("/registration/job-preferences");
+    } catch (error) {
+      console.error("API Error:", error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -38,7 +76,6 @@ const LanguageProficiency = () => {
 
       {languages.map((language, index) => (
         <div key={index} className="mb-4 border-b pb-4">
-          {/* Language Name */}
           <div className="mb-2">
             <label className="block font-medium text-gray-700">Language</label>
             <input
@@ -50,7 +87,6 @@ const LanguageProficiency = () => {
             />
           </div>
 
-          {/* Proficiency Level */}
           <div className="mb-2">
             <label className="block font-medium text-gray-700">Proficiency Level</label>
             <select
@@ -67,7 +103,6 @@ const LanguageProficiency = () => {
             </select>
           </div>
 
-          {/* Certification */}
           <div className="mb-2">
             <label className="block font-medium text-gray-700">Certification (if any)</label>
             <input
@@ -79,7 +114,6 @@ const LanguageProficiency = () => {
             />
           </div>
 
-          {/* Remove Language Button */}
           {languages.length > 1 && (
             <button
               onClick={() => removeLanguage(index)}
@@ -91,19 +125,20 @@ const LanguageProficiency = () => {
         </div>
       ))}
 
-      {/* Add Language Button */}
-      <button
-        onClick={addLanguage}
-        className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-      >
+      <button onClick={addLanguage} className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
         + Add Language
       </button>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
-          Next
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={() => router.push("/registration/language")}>
+          Back
+        </button>
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          onClick={submitLanguageData}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Submitting..." : "Next"}
         </button>
       </div>
     </div>

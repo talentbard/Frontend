@@ -10,7 +10,7 @@ const checkRegistrationStatus = async (userId, accessToken, refreshToken, router
 
   try {
     const response = await axios.post(
-      "http://13.201.78.9/talent/talent_registration_status/",
+      "https://backend.talentbard.com/talent/talent_registration_status/",
       {
         auth_params: {
           user_id: userId,

@@ -57,9 +57,9 @@ const PersonalInfo = () => {
     };
     
     try {
-      const response = await axios.post("http://13.201.78.9/talent/register/", requestBody, {
+      const response = await axios.post("https://backend.talentbard.com/talent/register/", requestBody, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+        "Accesstoken": accessToken,
           "Content-Type": "application/json",
         },
       });

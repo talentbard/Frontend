@@ -1,13 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 const PortfolioReferences = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [authParams, setAuthParams] = useState({
+    user_id: "",
+    refresh_token: "",
+    access_token: "",
+  });
+
   const [portfolio, setPortfolio] = useState({
     resume: null,
     projectLinks: [""],
     references: [""],
   });
+
+  // Fetch authentication details from localStorage
+  useEffect(() => {
+    const user_id = localStorage.getItem("user_id");
+    const refresh_token = localStorage.getItem("refresh_token");
+    const access_token = localStorage.getItem("access_token");
+
+    if (user_id && refresh_token && access_token) {
+      setAuthParams({ user_id, refresh_token, access_token });
+    }
+  }, []);
 
   const handleFileChange = (e) => {
     setPortfolio({ ...portfolio, resume: e.target.files[0] });
@@ -35,12 +54,68 @@ const PortfolioReferences = () => {
       return { ...prev, [type]: updatedList };
     });
   };
+
   const handleBack = () => {
-    router.push("/registration/work-experience"); // Navigate to Work Experience page
+    router.push("/registration/work-experience");
   };
 
-  const handleNext = () => {
-    router.push("/registration/work-terms"); // Navigate back to Skills page
+  const handleNext = async () => {
+    const apiUrl = "https://backend.talentbard.com/talent/portfolio/";
+    setLoading(true);
+
+    try {
+      let resumeBase64 = "";
+
+      if (portfolio.resume) {
+        resumeBase64 = await convertFileToBase64(portfolio.resume);
+      }
+
+      const requestBody = {
+        auth_params: {
+          user_id: authParams.user_id,
+          refresh_token: authParams.refresh_token,
+        },
+        payload: {
+          resume: resumeBase64,
+          project_links: portfolio.projectLinks,
+          references: portfolio.references,
+          user_id: authParams.user_id,
+        },
+      };
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accesstoken: authParams.access_token, // Fixed header case
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to submit portfolio. Status: ${response.status}, Error: ${errorText}`);
+      }
+
+      alert("Portfolio submitted successfully! 🎉");
+      router.push("/registration/work-terms");
+
+    } catch (error) {
+      console.error("API Error:", error);
+      alert("Failed to submit portfolio. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Convert file to Base64
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(",")[1]); // Removes "data:application/pdf;base64,"
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   return (
@@ -123,9 +198,15 @@ const PortfolioReferences = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
-          Next
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>
+          Back
+        </button>
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          onClick={handleNext}
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Next"}
         </button>
       </div>
     </div>
