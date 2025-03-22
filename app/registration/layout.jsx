@@ -1,5 +1,5 @@
 "use client";
-import NavBar from "./NavBar"; // Left Sidebar
+import NavBar from "./Navbar"; // Left Sidebar
 import Navbar from "../components/Navbar"; // Top Navbar
 
 export default function Layout({ children }) {
