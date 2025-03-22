@@ -1,6 +1,10 @@
+"use client"; 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Partner = () => {
+  const router = useRouter();
+
   return (
     <section className="bg-white text-black pt-12">
       {/* Partner Section */}
@@ -14,9 +18,10 @@ const Partner = () => {
         <div className="w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 flex justify-center items-center rounded-lg shadow-xl p-6 bg-white transition-all duration-300 hover:shadow-2xl hover:scale-105">
           <Image
             src="/Images/Partner1.jpg"
-            alt="Partner 1"
+            alt="Company Partner Logo"
             width={200}
             height={200}
+            priority
             className="object-contain shadow-lg md:shadow-xl lg:shadow-2xl"
           />
         </div>
@@ -35,7 +40,10 @@ const Partner = () => {
         </div>
 
         {/* CTA Button */}
-        <button className="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300">
+        <button
+          onClick={() => router.push("/login/signup")}
+          className="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+        >
           Get Started
         </button>
       </div>

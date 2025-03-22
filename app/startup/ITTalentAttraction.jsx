@@ -118,7 +118,7 @@ const ITTalentAttraction = () => {
       <div className="mt-16">
         <button
           className="bg-gradient-to-r from-blue-500 to-blue-700 text-white text-xl font-semibold py-3 px-8 rounded-lg shadow-lg hover:opacity-90 transition-all"
-          onClick={() => router.push("/company_registration")}
+          onClick={() => router.push("/login/signup")}
         >
           Start Hiring Now
         </button>
