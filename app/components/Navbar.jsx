@@ -31,9 +31,9 @@ const Navbar = () => {
       {/* Desktop Navigation */}
       <ul className="hidden md:flex space-x-6 text-gray-700">
         <li>
-          <Link href="/freelance">
+          <Link href="/">
             <span className="px-4 py-2 text-black hover:bg-blue-600 hover:text-white rounded-md cursor-pointer">
-              Why TalentBard?
+              Home
             </span>
           </Link>
         </li>
