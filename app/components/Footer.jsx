@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { FaLinkedin, FaTwitter, FaInstagram } from "react-icons/fa";
 
 const Footer = () => {
@@ -16,10 +17,11 @@ const Footer = () => {
         <div>
           <h3 className="text-sm font-semibold">Quick Links</h3>
           <ul className="text-gray-400 text-sm mt-2 space-y-1">
-            <li><a href="/about" className="hover:text-gray-200">About</a></li>
-            <li><a href="/contact" className="hover:text-gray-200">Contact</a></li>
-            <li><a href="/privacy-policy" className="hover:text-gray-200">Privacy Policy</a></li>
-            <li><a href="/terms" className="hover:text-gray-200">Terms</a></li>
+            <li><Link href="/" className="hover:text-gray-200">About</Link></li>
+            <li><a href="mailto:akshay@talentbard.com" className="hover:text-gray-200">Contact</a></li>
+
+            <li><Link href="/privacy-policy" className="hover:text-gray-200">Privacy Policy</Link></li>
+            <li><Link href="/terms" className="hover:text-gray-200">Terms</Link></li>
           </ul>
         </div>
 
@@ -40,8 +42,8 @@ const Footer = () => {
 
         <div>
           <h3 className="text-sm font-semibold">Contact</h3>
-          <p className="text-gray-400 text-sm mt-2">hello@talentbard.com</p>
-          <p className="text-gray-400 text-sm">+1 (555) 123-4567</p>
+          <p className="text-gray-400 text-sm mt-2">akshay@talentbard.com</p>
+          <p className="text-gray-400 text-sm">+91 7981347373</p>
         </div>
       </div>
 

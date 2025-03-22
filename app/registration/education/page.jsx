@@ -1,3 +1,7 @@
+
+///// working 
+
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -19,7 +23,11 @@ const Education = () => {
     const access_token = localStorage.getItem("access_token");
 
     if (user_id && refresh_token && access_token) {
-      setAuthParams({ user_id, refresh_token, access_token });
+      setAuthParams({ 
+        user_id: String(user_id),  // Convert to string to avoid issues
+        refresh_token, 
+        access_token 
+      });
     }
   }, []);
 
@@ -46,6 +54,14 @@ const Education = () => {
   const handleNext = async () => {
     const apiUrl = "https://backend.talentbard.com/talent/education/";
 
+    // Validate form fields
+    for (let edu of educationList) {
+      if (!edu.university || !edu.degree || !edu.fieldOfStudy) {
+        alert("Please fill in all required fields before submitting.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -57,13 +73,13 @@ const Education = () => {
           graduation_date: education.graduationDate,
           currently_pursuing: education.currentlyPursuing,
           gpa: parseFloat(education.gpa) || 0,
-          highest_degree: highestDegree,  // Include highest degree
-          user_id: authParams.user_id,
+          highest_degree: highestDegree,
+          user_id: String(authParams.user_id),  // Convert UUID to string
         };
 
         const requestBody = {
           auth_params: {
-            user_id: authParams.user_id,
+            user_id: String(authParams.user_id),
             refresh_token: authParams.refresh_token,
           },
           payload: payload,
@@ -77,11 +93,15 @@ const Education = () => {
           },
           body: JSON.stringify(requestBody),
         }).then(async (response) => {
+          const responseText = await response.text();
+          console.log("Response Status:", response.status);
+          console.log("Response Text:", responseText);
+          
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to submit education data. Status: ${response.status}, Error: ${errorText}`);
+            throw new Error(`Failed to submit education data. Status: ${response.status}, Error: ${responseText}`);
           }
-          return response.json();
+          
+          return JSON.parse(responseText);
         });
       });
 

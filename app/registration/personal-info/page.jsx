@@ -28,7 +28,7 @@ const PersonalInfo = () => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     const userId = localStorage.getItem("user_id");
     const refreshToken = localStorage.getItem("refresh_token");
     const accessToken = localStorage.getItem("access_token");
@@ -37,7 +37,7 @@ const PersonalInfo = () => {
       setLoading(false);
       return;
     }
-    
+
     const requestBody = {
       auth_params: {
         user_id: userId,
@@ -55,11 +55,11 @@ const PersonalInfo = () => {
         user_id: userId,
       },
     };
-    
+
     try {
       const response = await axios.post("https://backend.talentbard.com/talent/register/", requestBody, {
         headers: {
-        "Accesstoken": accessToken,
+          "Accesstoken": accessToken,
           "Content-Type": "application/json",
         },
       });
@@ -80,22 +80,40 @@ const PersonalInfo = () => {
         <p className="text-gray-600 text-center mb-6">Please fill in your details to register as a freelancer</p>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <form className="space-y-5" onSubmit={handleSubmit}>
-          <input type="text" name="fullName" placeholder="Full Name" onChange={handleChange} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
-          <div className="relative flex items-center">
-            <FaEnvelope className="absolute left-4 text-gray-500 text-lg" />
-            <input type="email" name="email" placeholder="xyz@mail.com" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+          <div>
+            <p className="text-gray-700 font-semibold">Full Name</p>
+            <input type="text" name="fullName" placeholder="Enter your full name" onChange={handleChange} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
           </div>
-          <div className="relative flex items-center">
-            <FaPhone className="absolute left-4 text-gray-500 text-lg" />
-            <input type="text" name="phone" placeholder="Phone Number (WhatsApp Preferred)" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+          <div>
+            <p className="text-gray-700 font-semibold">Email Address</p>
+            <div className="relative flex items-center">
+              <FaEnvelope className="absolute left-4 text-gray-500 text-lg" />
+              <input type="email" name="email" placeholder="xyz@mail.com" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+            </div>
           </div>
-          <div className="relative flex items-center">
-            <FaLinkedin className="absolute left-4 text-blue-600 text-lg" />
-            <input type="text" name="linkedIn" placeholder="LinkedIn Profile Link" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+          <div>
+            <p className="text-gray-700 font-semibold">Phone Number (WhatsApp Preferred)</p>
+            <div className="relative flex items-center">
+              <FaPhone className="absolute left-4 text-gray-500 text-lg" />
+              <input type="text" name="phone" placeholder="Enter your phone number" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+            </div>
+          </div>
+          <div>
+            <p className="text-gray-700 font-semibold">LinkedIn Profile</p>
+            <div className="relative flex items-center">
+              <FaLinkedin className="absolute left-4 text-blue-600 text-lg" />
+              <input type="text" name="linkedIn" placeholder="Paste your LinkedIn profile link" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="text" name="location" placeholder="Current Location" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
-            <input type="text" name="preferredLocation" placeholder="Preferred Work Location" onChange={handleChange} className="w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+            <div>
+              <p className="text-gray-700 font-semibold">Current Location</p>
+              <input type="text" name="location" placeholder="Enter your current location" onChange={handleChange} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+            </div>
+            <div>
+              <p className="text-gray-700 font-semibold">Preferred Work Location</p>
+              <input type="text" name="preferredLocation" placeholder="Enter your preferred location" onChange={handleChange} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+            </div>
           </div>
           <fieldset className="border p-4 rounded-lg">
             <legend className="font-semibold text-gray-800">Freelancer or Studio Status</legend>
@@ -106,13 +124,13 @@ const PersonalInfo = () => {
               </label>
             ))}
           </fieldset>
-          <label className="block">
-            <span className="font-semibold text-gray-800">Availability</span>
+          <div>
+            <p className="text-gray-700 font-semibold">Availability</p>
             <select name="availability" onChange={handleChange} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
               <option>Full-time</option>
               <option>Part-time</option>
             </select>
-          </label>
+          </div>
           <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 transition">
             {loading ? "Submitting..." : "Next"}
           </button>

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 
 const WorkExperience = () => {
   const router = useRouter();
-
   const [workExperiences, setWorkExperiences] = useState([
     {
       jobTitle: "",
@@ -18,20 +17,29 @@ const WorkExperience = () => {
       projects: "",
     },
   ]);
-
   const [loading, setLoading] = useState(false);
   const [authParams, setAuthParams] = useState({ user_id: "", refresh_token: "", access_token: "" });
 
   useEffect(() => {
     const user_id = localStorage.getItem("user_id");
-    const access_token = localStorage.getItem("access_token");
     const refresh_token = localStorage.getItem("refresh_token");
-
+    const access_token = localStorage.getItem("access_token");
+  
+    console.log("User ID:", user_id);
+    console.log("Refresh Token:", refresh_token);
+    console.log("Access Token:", access_token);
+  
     if (user_id && refresh_token && access_token) {
       setAuthParams({ user_id, refresh_token, access_token });
+    } else {
+      console.error("Auth parameters missing in localStorage");
+      alert("Session expired. Please log in again.");
+      localStorage.clear();
+      router.push("/login");
     }
   }, []);
-
+  
+  
   const handleChange = (index, field, value) => {
     setWorkExperiences((prev) =>
       prev.map((exp, i) => (i === index ? { ...exp, [field]: value } : exp))
@@ -60,29 +68,22 @@ const WorkExperience = () => {
   };
 
   const handleNext = async () => {
-    const apiUrl = "https://backend.talentbard.com/talent/work-experience/";
+    if (!authParams.user_id || authParams.user_id.length !== 36) {
+      alert("Invalid user ID. Please log in again.");
+      setLoading(false);
+      return;
+    }
+  
     setLoading(true);
-
     try {
-      for (const exp of workExperiences) {
-        if (
-          !exp.jobTitle ||
-          !exp.company ||
-          !exp.industry ||
-          !exp.startDate ||
-          !exp.responsibilities ||
-          !exp.achievements ||
-          !exp.techUsed ||
-          !exp.projects
-        ) {
-          alert("Please fill all required fields before submitting.");
-          setLoading(false);
-          return;
+      const payloads = workExperiences.map((exp) => {
+        if (!exp.jobTitle || !exp.company || !exp.industry || !exp.startDate || !exp.responsibilities || !exp.achievements || !exp.techUsed || !exp.projects) {
+          throw new Error("Please fill all required fields before submitting.");
         }
-
-        const payload = {
+  
+        return {
           auth_params: {
-            user_id: authParams.user_id,
+            user_id: String(authParams.user_id),
             refresh_token: authParams.refresh_token,
           },
           payload: {
@@ -98,35 +99,49 @@ const WorkExperience = () => {
             user_id: authParams.user_id,
           },
         };
-
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accesstoken": authParams.access_token,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to submit work experience. Status: ${response.status}, Error: ${errorText}`);
-        }
+      });
+  
+      console.log("Submitting payloads:", JSON.stringify(payloads, null, 2));
+  
+      // Send all API requests concurrently
+      const responses = await Promise.all(
+        payloads.map((payload) =>
+          fetch("https://backend.talentbard.com/talent/work-experience/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accesstoken": authParams.access_token,
+            },
+            body: JSON.stringify(payload),
+          })
+        )
+      );
+  
+      // Parse all responses
+      const results = await Promise.all(responses.map((res) => res.json()));
+  
+      console.log("Server Responses:", results);
+  
+      // Check if all responses are successful
+      if (responses.some((res) => !res.ok)) {
+        throw new Error("Some work experiences failed to submit.");
       }
-
+  
       alert("All work experiences submitted successfully!");
       router.push("/registration/portfolio");
     } catch (error) {
       console.error("Error submitting work experience:", error);
-      alert("Failed to submit work experience. Please try again.");
+      alert(`Failed to submit work experience. ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleBack = () => {
     router.push("/registration/skills");
   };
+
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">

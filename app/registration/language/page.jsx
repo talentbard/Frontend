@@ -80,7 +80,7 @@ const LanguageProficiency = () => {
             <label className="block font-medium text-gray-700">Language</label>
             <input
               type="text"
-              placeholder="Enter language (e.g., English, Spanish)"
+              placeholder="Enter language (e.g., English)"
               value={language.name}
               onChange={(e) => handleChange(index, "name", e.target.value)}
               className="border p-2 rounded-md w-full"

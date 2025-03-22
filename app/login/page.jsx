@@ -56,7 +56,7 @@ const Login = () => {
   
       console.log("Login Response:", response.data); // Check response data
   
-      const { access_token, refresh_token, user_id } = response.data;
+      const { access_token, refresh_token, user_id} = response.data;
   
       if (access_token) {
         localStorage.setItem("access_token", access_token);
@@ -69,7 +69,8 @@ const Login = () => {
           user_id: localStorage.getItem("user_id"),
         });
   
-        await checkRegistrationStatus(user_id, access_token, refresh_token, router);
+        await checkRegistrationStatus(user_id, access_token, refresh_token, isFreelancer, router);
+
       } else {
         setError("Login failed. No token received.");
       }

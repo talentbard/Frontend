@@ -5,20 +5,35 @@ const FreelancingStats = () => {
     {
       percentage: "61%",
       title: "Freelancer's time is devalued & taken advantage of",
-      description:
-        "61% of total project time is spent on admin tasks like proposals, client hunting & chasing payments.",
+      description: (
+        <>
+          <span className="text-blue-600 font-extrabold">61%</span> of total project
+          time is spent on admin tasks like proposals, client hunting & chasing
+          payments.
+        </>
+      ),
     },
     {
       percentage: "65%",
       title: "Contracts & payments are poorly enforced",
-      description:
-        "65% of freelance projects fail & 60% of freelancers face payment issues.",
+      description: (
+        <>
+          <span className="text-blue-600 font-extrabold">65%</span> of freelance
+          projects fail & <span className="text-blue-600 font-extrabold">60%</span> of
+          freelancers face payment issues.
+        </>
+      ),
     },
     {
       percentage: "10%",
       title: "Cross-border payments are a costly barrier",
-      description:
-        "Freelancers lose up to 10% in fees on international payments, hurting their income.",
+      description: (
+        <>
+          Freelancers lose up to{" "}
+          <span className="text-blue-600 font-extrabold">10%</span> in fees on
+          international payments, hurting their income.
+        </>
+      ),
     },
   ];
 
@@ -64,8 +79,8 @@ const FreelancingStats = () => {
                   strokeLinecap="round"
                 />
               </svg>
-              {/* Percentage Text */}
-              <span className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-black">
+              {/* Percentage Text (Inside Circle) */}
+              <span className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-blue-700">
                 {stat.percentage}
               </span>
             </div>
@@ -74,7 +89,7 @@ const FreelancingStats = () => {
             <h3 className="mt-5 text-lg md:text-xl font-bold text-gray-900">
               {stat.title}
             </h3>
-            {/* Description */}
+            {/* Description with Red Percentage */}
             <p className="mt-2 text-gray-600 text-base font-semibold md:text-lg leading-relaxed">
               {stat.description}
             </p>

@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 const JobPreferences = () => {
   const router = useRouter();
 
   const [preferences, setPreferences] = useState({
     jobTitle: "",
+    jobTitleOptions: [], // Store entered job titles as options
     workType1: "",
     workType2: "",
     workType3: "",
@@ -19,7 +20,17 @@ const JobPreferences = () => {
 
   const handleChange = (field, value) => {
     setPreferences({ ...preferences, [field]: value });
+
+    // If user is entering job titles, split and store them as options
+    if (field === "jobTitle") {
+      const jobTitles = value.split(",").map((title) => title.trim()); // Convert input to an array
+      setPreferences((prev) => ({
+        ...prev,
+        jobTitleOptions: jobTitles, // Store them as options for selection
+      }));
+    }
   };
+
   const handleNext = () => {
     router.push("/registration/status"); // Navigate to Work Experience page
   };
@@ -32,12 +43,12 @@ const JobPreferences = () => {
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Job Preferences</h2>
 
-      {/* Job Title */}
+      {/* Job Title Input */}
       <div className="mb-4">
         <label className="block font-medium text-gray-700">Job Title</label>
         <input
           type="text"
-          placeholder="Enter job title (e.g., Software Engineer)"
+          placeholder="Enter job titles (comma-separated, e.g., Full Stack Developer, DevOps Engineer)"
           value={preferences.jobTitle}
           onChange={(e) => handleChange("jobTitle", e.target.value)}
           className="border p-2 rounded-md w-full"
@@ -46,18 +57,19 @@ const JobPreferences = () => {
 
       {/* Preferred Job Types */}
       <div className="mb-4">
-        <label className="block font-medium text-gray-700">Preferred Job Type (Select Top 3)</label>
+        <label className="block font-medium text-gray-700">Top Job Preferences (Select up to 3)</label>
+
         <select
           value={preferences.workType1}
           onChange={(e) => handleChange("workType1", e.target.value)}
           className="border p-2 rounded-md w-full"
         >
           <option value="">Top Preference</option>
-          <option value="Full-Time">Full-Time</option>
-          <option value="Part-Time">Part-Time</option>
-          <option value="Freelance">Freelance</option>
-          <option value="Internship">Internship</option>
-          <option value="Contract">Contract</option>
+          {preferences.jobTitleOptions.map((title, index) => (
+            <option key={index} value={title}>
+              {title}
+            </option>
+          ))}
         </select>
 
         <select
@@ -66,11 +78,11 @@ const JobPreferences = () => {
           className="border p-2 rounded-md w-full mt-2"
         >
           <option value="">Second Preference</option>
-          <option value="Full-Time">Full-Time</option>
-          <option value="Part-Time">Part-Time</option>
-          <option value="Freelance">Freelance</option>
-          <option value="Internship">Internship</option>
-          <option value="Contract">Contract</option>
+          {preferences.jobTitleOptions.map((title, index) => (
+            <option key={index} value={title}>
+              {title}
+            </option>
+          ))}
         </select>
 
         <select
@@ -79,17 +91,18 @@ const JobPreferences = () => {
           className="border p-2 rounded-md w-full mt-2"
         >
           <option value="">Third Preference</option>
-          <option value="Full-Time">Full-Time</option>
-          <option value="Part-Time">Part-Time</option>
-          <option value="Freelance">Freelance</option>
-          <option value="Internship">Internship</option>
-          <option value="Contract">Contract</option>
+          {preferences.jobTitleOptions.map((title, index) => (
+            <option key={index} value={title}>
+              {title}
+            </option>
+          ))}
         </select>
       </div>
 
       {/* Preferred Industries */}
       <div className="mb-4">
         <label className="block font-medium text-gray-700">Preferred Industries (Select Top 3)</label>
+        
         <select
           value={preferences.industry1}
           onChange={(e) => handleChange("industry1", e.target.value)}
@@ -141,7 +154,7 @@ const JobPreferences = () => {
         <label className="block font-medium text-gray-700">Desired Role</label>
         <input
           type="text"
-          placeholder="Enter desired role (e.g., Web Designer, Full Stack Developer)"
+          placeholder="Enter desired role"
           value={preferences.desiredRole}
           onChange={(e) => handleChange("desiredRole", e.target.value)}
           className="border p-2 rounded-md w-full"
@@ -161,7 +174,9 @@ const JobPreferences = () => {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>Back</button>
+        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>
+          Back
+        </button>
         <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handleNext}>
           Next
         </button>

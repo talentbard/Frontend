@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+const MAX_LENGTH = 100; // Limit for database fields
+
 const PortfolioReferences = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -12,12 +14,11 @@ const PortfolioReferences = () => {
   });
 
   const [portfolio, setPortfolio] = useState({
-    resume: null,
+    resume: "",
     projectLinks: [""],
     references: [""],
   });
 
-  // Fetch authentication details from localStorage
   useEffect(() => {
     const user_id = localStorage.getItem("user_id");
     const refresh_token = localStorage.getItem("refresh_token");
@@ -28,14 +29,22 @@ const PortfolioReferences = () => {
     }
   }, []);
 
-  const handleFileChange = (e) => {
-    setPortfolio({ ...portfolio, resume: e.target.files[0] });
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+  
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { // Limit file to 2MB
+      alert("File size should be under 2MB.");
+      return;
+    }
+  
+    const base64String = await convertFileToBase64(file);
+    setPortfolio({ ...portfolio, resume: base64String });
   };
-
   const handleChange = (index, type, value) => {
     setPortfolio((prev) => {
       const updatedList = [...prev[type]];
-      updatedList[index] = value;
+      updatedList[index] = value.length > MAX_LENGTH ? value.substring(0, MAX_LENGTH) : value;
       return { ...prev, [type]: updatedList };
     });
   };
@@ -62,44 +71,45 @@ const PortfolioReferences = () => {
   const handleNext = async () => {
     const apiUrl = "https://backend.talentbard.com/talent/portfolio/";
     setLoading(true);
-
+  
     try {
-      let resumeBase64 = "";
-
-      if (portfolio.resume) {
-        resumeBase64 = await convertFileToBase64(portfolio.resume);
-      }
-
       const requestBody = {
         auth_params: {
           user_id: authParams.user_id,
           refresh_token: authParams.refresh_token,
         },
         payload: {
-          resume: resumeBase64,
-          project_links: portfolio.projectLinks,
-          references: portfolio.references,
+          resume: portfolio.resume || null, // Ensure it’s properly set
+          project_links: portfolio.projectLinks.map((link) =>
+            link.length > MAX_LENGTH ? link.substring(0, MAX_LENGTH) : link
+          ),
+          references: portfolio.references.map((ref) =>
+            ref.length > MAX_LENGTH ? ref.substring(0, MAX_LENGTH) : ref
+          ),
           user_id: authParams.user_id,
         },
       };
-
+      
+  
+      console.log("Request Payload:", JSON.stringify(requestBody, null, 2));
+  
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          accesstoken: authParams.access_token, // Fixed header case
+          accesstoken: authParams.access_token,
         },
         body: JSON.stringify(requestBody),
       });
-
+  
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to submit portfolio. Status: ${response.status}, Error: ${errorText}`);
       }
-
+  
       alert("Portfolio submitted successfully! 🎉");
       router.push("/registration/work-terms");
-
+  
     } catch (error) {
       console.error("API Error:", error);
       alert("Failed to submit portfolio. Please try again.");
@@ -107,17 +117,15 @@ const PortfolioReferences = () => {
       setLoading(false);
     }
   };
-
-  // Convert file to Base64
+  
   const convertFileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(",")[1]); // Removes "data:application/pdf;base64,"
+      reader.readAsDataURL(file); // Read as Data URL
+      reader.onload = () => resolve(reader.result); // Get full Base64 string
       reader.onerror = (error) => reject(error);
     });
   };
-
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Portfolio & References</h2>

@@ -1,14 +1,21 @@
 import axios from "axios";
 
-const checkRegistrationStatus = async (userId, accessToken, refreshToken, router) => {
-  console.log("Received in checkRegistrationStatus:", { userId, accessToken, refreshToken });
+const checkRegistrationStatus = async (userId, accessToken, refreshToken, isFreelancer, router) => {
+  console.log("Received in checkRegistrationStatus:", { userId, accessToken, refreshToken, isFreelancer });
 
   if (!accessToken) {
     console.error("❌ No access token available");
     return;
   }
 
+  if (!isFreelancer) {
+    // If user is a company, redirect directly without checking registration status
+    router.push("/company_registration");
+    return;
+  }
+
   try {
+    // Only freelancers (talents) have a registration status check
     const response = await axios.post(
       "https://backend.talentbard.com/talent/talent_registration_status/",
       {
@@ -22,8 +29,8 @@ const checkRegistrationStatus = async (userId, accessToken, refreshToken, router
       },
       {
         headers: {
-            "Content-Type": "application/json",
-            "Accesstoken": accessToken,
+          "Content-Type": "application/json",
+          "Accesstoken": accessToken,
         },
       }
     );

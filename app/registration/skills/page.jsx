@@ -1,13 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const SkillsPage = () => {
-  const router = useRouter(); // Initialize the router
-
-  const [skills, setSkills] = useState([{ primary: "", level: "Beginner", experience: "" }]);
-  const [secondarySkills, setSecondarySkills] = useState([{ skill: "", level: "Beginner", experience: "" }]);
-
+  const router = useRouter();
+  const [skills, setSkills] = useState([{ skill_name: "", skill_level: "Beginner", experience_years: 0 }]);
+  const [secondarySkills, setSecondarySkills] = useState([{ skill_name: "", skill_level: "Beginner", experience_years: 0 }]);
+  const [certificates, setCertificates] = useState([]);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  
+  const [userId, setUserId] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  
+  useEffect(() => {
+    setUserId(localStorage.getItem("user_id"));
+    setRefreshToken(localStorage.getItem("refresh_token"));
+    setAccessToken(localStorage.getItem("access_token"));
+  }, []);
   const handleSkillChange = (index, field, value) => {
     const updatedSkills = [...skills];
     updatedSkills[index][field] = value;
@@ -21,21 +31,74 @@ const SkillsPage = () => {
   };
 
   const addSkill = () => {
-    setSkills([...skills, { primary: "", level: "Beginner", experience: "" }]);
+    setSkills([...skills, { skill_name: "", skill_level: "Beginner", experience_years: 0 }]);
   };
 
   const addSecondarySkill = () => {
-    setSecondarySkills([...secondarySkills, { skill: "", level: "Beginner", experience: "" }]);
+    setSecondarySkills([...secondarySkills, { skill_name: "", skill_level: "Beginner", experience_years: 0 }]);
   };
 
-  const handleNext = () => {
-    router.push("/registration/education"); // Navigate to the education page
+  const handleFileChange = async (event) => {
+    const files = event.target.files;
+    const newCertificates = [];
+
+    for (let file of files) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        newCertificates.push({ name: file.name, data: reader.result.split(",")[1] });
+        setCertificates([...certificates, ...newCertificates]);
+      };
+    }
+  };
+
+  const addCertificate = () => {
+    document.getElementById("certificateInput").click();
+  };
+
+  const submitSkills = async () => {
+    try {
+      for (let skill of skills) {
+        await fetch("https://backend.talentbard.com/talent/skills/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accesstoken": accessToken,
+          },
+          body: JSON.stringify({
+            auth_params: { user_id: userId, refresh_token: refreshToken },
+            payload: {
+              primary_skill: skill.skill_name,
+              skill_level: skill.skill_level,
+              experience_years: skill.experience_years,
+              secondary_skills: secondarySkills.map(s => s.skill_name).join(", "),
+              certificate_image: certificates.map(cert => cert.data).join(", "),
+              user_id: userId,
+            },
+          }),
+        });
+      }
+      setSubmissionSuccess(true);
+    } catch (error) {
+      console.error("Error submitting data:", error);
+    }
+  };
+
+  const handleNext = async () => {
+    try {
+      await submitSkills();
+      setSubmissionSuccess(true);
+      setTimeout(() => {
+        router.push("/registration/education");
+      }, 1000);
+    } catch (error) {
+      console.error("Error during submission:", error);
+    }
   };
 
   const handleBack = () => {
-    router.push("/registration/personal-info"); // Navigate back to personal info
+    router.push("/registration/personal-info");
   };
-
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Skills & Expertise</h2>
@@ -46,13 +109,13 @@ const SkillsPage = () => {
           <input
             type="text"
             placeholder="Primary Skill"
-            value={skill.primary}
-            onChange={(e) => handleSkillChange(index, "primary", e.target.value)}
+            value={skill.skill_name}
+            onChange={(e) => handleSkillChange(index, "skill_name", e.target.value)}
             className="border p-2 rounded-md w-full"
           />
           <select
-            value={skill.level}
-            onChange={(e) => handleSkillChange(index, "level", e.target.value)}
+            value={skill.skill_level}
+            onChange={(e) => handleSkillChange(index, "skill_level", e.target.value)}
             className="border p-2 rounded-md w-full"
           >
             <option>Beginner</option>
@@ -62,8 +125,8 @@ const SkillsPage = () => {
           <input
             type="number"
             placeholder="Experience (years)"
-            value={skill.experience}
-            onChange={(e) => handleSkillChange(index, "experience", e.target.value)}
+            value={skill.experience_years}
+            onChange={(e) => handleSkillChange(index, "experience_years", e.target.value)}
             className="border p-2 rounded-md w-full"
           />
         </div>
@@ -84,13 +147,13 @@ const SkillsPage = () => {
             <input
               type="text"
               placeholder="Secondary Skill"
-              value={skill.skill}
-              onChange={(e) => handleSecondarySkillChange(index, "skill", e.target.value)}
+              value={skill.skill_name}
+              onChange={(e) => handleSecondarySkillChange(index, "skill_name", e.target.value)}
               className="border p-2 rounded-md w-full"
             />
             <select
-              value={skill.level}
-              onChange={(e) => handleSecondarySkillChange(index, "level", e.target.value)}
+              value={skill.skill_level}
+              onChange={(e) => handleSecondarySkillChange(index, "skill_level", e.target.value)}
               className="border p-2 rounded-md w-full"
             >
               <option>Beginner</option>
@@ -100,8 +163,8 @@ const SkillsPage = () => {
             <input
               type="number"
               placeholder="Experience (years)"
-              value={skill.experience}
-              onChange={(e) => handleSecondarySkillChange(index, "experience", e.target.value)}
+              value={skill.experience_years}
+              onChange={(e) => handleSecondarySkillChange(index, "experience_years", e.target.value)}
               className="border p-2 rounded-md w-full"
             />
           </div>
@@ -114,11 +177,27 @@ const SkillsPage = () => {
         </button>
       </div>
 
-      {/* Upload Certifications */}
+      {/* Uploaded Certifications */}
       <div className="mt-6 border-dashed border-2 border-gray-300 p-4 text-center rounded-lg">
         <p className="text-gray-600">Upload Certifications</p>
-        <input type="file" className="mt-2" />
+        <input type="file" id="certificateInput" multiple className="hidden" onChange={handleFileChange} />
+        <button
+          className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          onClick={addCertificate}
+        >
+          + Add Certificate
+        </button>
+        <ul className="mt-2 text-left">
+          {certificates.map((cert, index) => (
+            <li key={index} className="text-gray-800">{cert.name}</li>
+          ))}
+        </ul>
       </div>
+
+      {/* Submission Success Message */}
+      {submissionSuccess && (
+        <p className="mt-4 text-green-600 font-semibold">Form submitted successfully!</p>
+      )}
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
@@ -134,3 +213,4 @@ const SkillsPage = () => {
 };
 
 export default SkillsPage;
+

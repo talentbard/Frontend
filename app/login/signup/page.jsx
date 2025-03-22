@@ -12,13 +12,11 @@ const Signup = () => {
     phone_no: "",
     password: "",
     confirmPassword: "",
-    company_name: "",
-    linked_in: "",
   });
 
   // Handle input changes
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value.trim() });
   };
 
   // Password validation function
@@ -30,16 +28,22 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!formData.full_name || !formData.email_id || !formData.password) {
-      alert("Full Name, Email, and Password are required!");
+    console.log("Form Data:", formData);
+
+    // Trim and validate input values
+    const full_name = formData.full_name.trim();
+    const email_id = formData.email_id.trim();
+    const password = formData.password.trim();
+
+    if (!full_name || !email_id || !password) {
+      alert("Full name, Email, and Password are required!");
       return;
     }
-    if (!validatePassword(formData.password)) {
+    if (!validatePassword(password)) {
       alert("Password must be at least 8 characters long, contain at least one uppercase letter, and one number.");
       return;
     }
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== formData.confirmPassword.trim()) {
       alert("Passwords do not match!");
       return;
     }
@@ -47,19 +51,19 @@ const Signup = () => {
     // API request body
     const requestData = {
       auth_params: {
-        user_id: localStorage.getItem("user_id") || "temp_id", // Use stored user_id or temp
-        other_param: "string", 
+        user_id: localStorage.getItem("user_id") || "temp_id",
+        other_param: "string",
       },
       payload: {
-        full_name: formData.full_name,
-        email_id: formData.email_id,
-        phone_no: formData.phone_no,
+        full_name: full_name,
+        email_id: email_id,
+        phone_no: formData.phone_no.trim(),
         role: isFreelancer ? "talent" : "company",
-        password: formData.password,
+        password: password,
         admin_key: "demo",
-        ...(isFreelancer ? {} : { company_name: formData.company_name, linked_in: formData.linked_in }),
       },
     };
+
     try {
       const response = await fetch("https://backend.talentbard.com/user/signup/", {
         method: "POST",
@@ -72,7 +76,7 @@ const Signup = () => {
 
       if (response.ok) {
         alert("Signup successful! Redirecting to login...");
-        router.push("/login"); // Redirect to login page
+        router.push("/login");
       } else {
         alert(data.error || "Signup failed. Please try again.");
       }
@@ -100,15 +104,15 @@ const Signup = () => {
 
         {/* Signup Form */}
         <form onSubmit={handleSubmit}>
-          {isFreelancer && (
-            <input name="full_name" type="text" placeholder="Full Name" value={formData.full_name} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
-          )}
-          {!isFreelancer && (
-            <>
-              <input name="company_name" type="text" placeholder="Company Name" value={formData.company_name} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
-              <input name="linked_in" type="text" placeholder="LinkedIn ID" value={formData.linked_in} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
-            </>
-          )}
+          <input
+            name="full_name"
+            type="text"
+            placeholder={isFreelancer ? "Full Name" : "Company Name"}
+            value={formData.full_name}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-3 border rounded-xl"
+            required
+          />
 
           <input name="email_id" type="email" placeholder="Email Address" value={formData.email_id} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
 
