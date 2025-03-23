@@ -68,7 +68,7 @@ const Simplified = () => {
       <div className="mt-12">
         <button 
           className="px-10 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-          onClick={() => router.push("/registration/personal-info")}
+          onClick={() => router.push("/login/signup")}
         >
           Get Started
         </button>

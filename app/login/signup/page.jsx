@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const Signup = () => {
   const router = useRouter();
@@ -132,6 +133,12 @@ const Signup = () => {
             Sign Up
           </button>
         </form>
+        <p className="text-gray-600 mt-3">
+           have an account?{" "}
+          <Link href="/login" className="text-indigo-500 font-semibold hover:underline">
+            Sign In
+          </Link>
+        </p>
       </div>
     </div>
   );
