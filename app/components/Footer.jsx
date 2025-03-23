@@ -18,7 +18,6 @@ const Footer = () => {
           <h3 className="text-sm font-semibold">Quick Links</h3>
           <ul className="text-gray-400 text-sm mt-2 space-y-1">
             <li><Link href="/" className="hover:text-gray-200">About</Link></li>
-            <li><a href="mailto:akshay@talentbard.com" className="hover:text-gray-200">Contact</a></li>
 
             <li><Link href="/terms_condition/privacy_policy" className="hover:text-gray-200">Privacy Policy</Link></li>
             <li><Link href="/terms_condition/terms_and_conditions" className="hover:text-gray-200">Terms</Link></li>
