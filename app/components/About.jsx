@@ -54,7 +54,7 @@ const About = () => {
 
       {/* Subheadline */}
       <p className="mt-6 text-lg md:text-xl max-w-[800px] mx-auto leading-snug text-gray-300">
-        Hire & manage top Tech talent, secure payments with escrow, invest idle cash, and make seamless cross-border payments — all in one dashboard.
+      Bridging the gap between full-time jobs and freelancing - giving startups the specialists they need and talents the flexibility they want.
       </p>
 
       {/* Buttons */}

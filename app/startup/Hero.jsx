@@ -41,14 +41,14 @@ const Hero = () => {
   return (
     <section className="flex items-center justify-center min-h-[80vh] bg-gradient-to-r from-black to-blue-900 px-4 sm:px-6 py-20 sm:py-12">
       <div className="text-white max-w-3xl text-center space-y-6 px-4 sm:px-0">
-        {/* Main Heading */}
+        {/* Main Heading */}  
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-          India's <span className="text-blue-400">Startup-Focused</span> Freelance Platform
+          India's <span className="text-blue-400">Startup-Focused Tech Talent </span> Platform
         </h1>
 
         {/* Description */}
         <p className="text-lg sm:text-xl text-gray-300 leading-relaxed">
-          Hire Skilled, Reliable, and In-Budget Talent
+          Hire Skilled, Reliable, and In-Budget Talent : Full-time, Part-time, Anytime
         </p>
 
         {/* Call to Action Button */}

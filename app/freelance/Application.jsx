@@ -32,7 +32,7 @@ const Application = () => {
               {/* Step Title */}
               <h4 className="font-semibold text-lg text-blue-700 mt-3">{step.title}</h4>
               {/* Step Description */}
-              <p className="text-gray-600 text-md">{step.desc}</p>
+              <p className="text-black text-md">{step.desc}</p>
             </div>
           ))}
         </div>

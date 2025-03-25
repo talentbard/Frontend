@@ -1,60 +1,325 @@
+
+// "use client";
+// import { useState, useEffect } from "react";
+// import { motion } from "framer-motion";
+
+// const API_URL = "https://backend.talentbard.com/talent/talent_make_quiz_views/";
+
+// export default function QuizPage() {
+//   const [questions, setQuestions] = useState([]);
+//   const [currentQuestion, setCurrentQuestion] = useState(0);
+//   const [score, setScore] = useState(0);
+//   const [quizFinished, setQuizFinished] = useState(false);
+//   const [selectedOption, setSelectedOption] = useState(null);
+//   const [timeLeft, setTimeLeft] = useState(60); // 1-Minute Timer
+//   const [loading, setLoading] = useState(true);
+
+//   // Fetch Questions from API
+//   useEffect(() => {
+//     const fetchQuestions = async () => {
+//       try {
+//         const access_token = localStorage.getItem("access_token");
+//         const user_id = localStorage.getItem("user_id");
+//         const refresh_token = localStorage.getItem("refresh_token");
+
+//         if (!access_token || !user_id || !refresh_token) {
+//           throw new Error("Authentication tokens are missing.");
+//         }
+
+//         const response = await fetch(API_URL, {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             "Accesstoken": access_token
+//           },
+//           body: JSON.stringify({
+//             auth_params: { user_id, refresh_token },
+//             payload: { user_id },
+//           }),
+//         });
+
+//         const data = await response.json();
+//         console.log("API Response:", data); // Debugging
+
+//         if (!data.payload || !Array.isArray(data.payload) || data.payload.length === 0) {
+//           throw new Error("No questions available.");
+//         }
+
+//         setQuestions(data.payload);
+//       } catch (error) {
+//         console.error("Error fetching questions:", error.message);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchQuestions();
+//   }, []);
+
+//   // Global Quiz Timer
+//   useEffect(() => {
+//     if (quizFinished || loading) return;
+
+//     if (timeLeft === 0) {
+//       setQuizFinished(true);
+//       return;
+//     }
+
+//     const timer = setInterval(() => {
+//       setTimeLeft((prev) => prev - 1);
+//     }, 1000);
+
+//     return () => clearInterval(timer);
+//   }, [timeLeft, quizFinished, loading]);
+
+//   // Handle Answer Selection
+//   const handleAnswer = (option) => {
+//     setSelectedOption(option);
+
+//     // Extract correct answer from API response
+//     const correctOptionKey = `option_${questions[currentQuestion].correct_option.split(" ")[1]}`;
+//     const correctAnswerText = questions[currentQuestion][correctOptionKey];
+
+//     if (option === correctAnswerText) {
+//       setScore((prev) => prev + 1);
+//     }
+
+//     setTimeout(() => {
+//       if (currentQuestion + 1 < questions.length) {
+//         setCurrentQuestion((prev) => prev + 1);
+//         setSelectedOption(null);
+//       } else {
+//         setQuizFinished(true);
+//       }
+//     }, 800);
+//   };
+
+//   // Restart Quiz
+//   const restartQuiz = () => {
+//     setCurrentQuestion(0);
+//     setScore(0);
+//     setQuizFinished(false);
+//     setSelectedOption(null);
+//     setTimeLeft(60); // Reset timer
+//   };
+
+//   // **UI Renders**
+//   if (loading) {
+//     return (
+//       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+//         <p>Loading Questions...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 p-6">
+//       <motion.div
+//         className="backdrop-blur-lg bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl text-center max-w-lg w-full"
+//         initial={{ opacity: 0, y: -30 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         transition={{ duration: 0.6 }}
+//       >
+//         {quizFinished ? (
+//           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }}>
+//             <h2 className="text-4xl font-bold text-white">Time's Up!</h2>
+//             <p className="text-lg mt-4 text-gray-300">
+//               Your Score:{" "}
+//               <span className="text-green-400 font-bold">
+//                 {score} / {questions.length}
+//               </span>
+//             </p>
+//             <motion.button
+//               onClick={restartQuiz}
+//               whileHover={{ scale: 1.1 }}
+//               whileTap={{ scale: 0.9 }}
+//               className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-2xl transition-all"
+//             >
+//               Restart Quiz
+//             </motion.button>
+//           </motion.div>
+//         ) : (
+//           <motion.div key={currentQuestion} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
+//             <h2 className="text-3xl font-bold text-white">{questions[currentQuestion].question}</h2>
+
+//             {/* Timer */}
+//             <div className="text-white text-lg font-bold mt-4">
+//               ⏳ Time Left:{" "}
+//               <span className={timeLeft <= 10 ? "text-red-400" : "text-green-400"}>
+//                 {timeLeft}s
+//               </span>
+//             </div>
+
+//             <div className="mt-6 flex flex-col gap-4">
+//               {["option_1", "option_2", "option_3", "option_4"].map((key, index) => (
+//                 <motion.button
+//                   key={index}
+//                   whileHover={{ scale: selectedOption ? 1 : 1.05 }}
+//                   whileTap={{ scale: selectedOption ? 1 : 0.95 }}
+//                   className={`px-6 py-3 text-white rounded-full border transition-all
+//                     ${
+//                       selectedOption
+//                         ? questions[currentQuestion][key] === questions[currentQuestion][`option_${questions[currentQuestion].correct_option.split(" ")[1]}`]
+//                           ? "bg-green-500 border-green-600" // Correct
+//                           : questions[currentQuestion][key] === selectedOption
+//                           ? "bg-red-500 border-red-600" // Wrong
+//                           : "bg-white/10 border-white/30"
+//                         : "bg-white/10 border-white/30 hover:bg-blue-500"
+//                     }
+//                   `}
+//                   onClick={() => !selectedOption && handleAnswer(questions[currentQuestion][key])}
+//                 >
+//                   {questions[currentQuestion][key]}
+//                 </motion.button>
+//               ))}
+//             </div>
+
+//             {/* Progress Bar */}
+//             <div className="w-full bg-white/20 rounded-full h-4 mt-6 overflow-hidden">
+//               <motion.div
+//                 className="h-4 bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
+//                 style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+//               />
+//             </div>
+//             <p className="text-gray-300 mt-2 text-sm">
+//               Question {currentQuestion + 1} of {questions.length}
+//             </p>
+//           </motion.div>
+//         )}
+//       </motion.div>
+//     </div>
+//   );
+// }
+
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const questions = [
-  {
-    question: "What is the capital of France?",
-    options: ["Berlin", "Madrid", "Paris", "Rome"],
-    answer: "Paris",
-  },
-  {
-    question: "Which planet is known as the Red Planet?",
-    options: ["Earth", "Mars", "Jupiter", "Venus"],
-    answer: "Mars",
-  },
-  {
-    question: "What is 10 + 5?",
-    options: ["10", "12", "15", "20"],
-    answer: "15",
-  },
-];
+const API_URL = "https://backend.talentbard.com/talent/talent_make_quiz_views/";
+const RESULT_API_URL = "https://backend.talentbard.com/talent/talent_quiz_result_views/";
 
 export default function QuizPage() {
+  const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [answerStatus, setAnswerStatus] = useState(null); // "correct" | "wrong"
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const access_token = localStorage.getItem("access_token");
+        const user_id = localStorage.getItem("user_id");
+        const refresh_token = localStorage.getItem("refresh_token");
+
+        if (!access_token || !user_id || !refresh_token) {
+          throw new Error("Authentication tokens are missing.");
+        }
+
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accesstoken": access_token,
+          },
+          body: JSON.stringify({
+            auth_params: { user_id, refresh_token },
+            payload: { user_id },
+          }),
+        });
+
+        const data = await response.json();
+        if (!data.payload || !Array.isArray(data.payload) || data.payload.length === 0) {
+          throw new Error("No questions available.");
+        }
+
+        setQuestions(data.payload);
+      } catch (error) {
+        console.error("Error fetching questions:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, []);
+
+  useEffect(() => {
+    if (quizFinished || loading) return;
+    if (timeLeft === 0) {
+      setQuizFinished(true);
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, quizFinished, loading]);
 
   const handleAnswer = (option) => {
     setSelectedOption(option);
-    if (option === questions[currentQuestion].answer) {
-      setScore(score + 1);
-      setAnswerStatus("correct");
-    } else {
-      setAnswerStatus("wrong");
+    const correctOptionKey = `option_${questions[currentQuestion].correct_option.split(" ")[1]}`;
+    const correctAnswerText = questions[currentQuestion][correctOptionKey];
+
+    if (option === correctAnswerText) {
+      setScore((prev) => prev + 1);
     }
 
-    // Delay before moving to the next question
     setTimeout(() => {
       if (currentQuestion + 1 < questions.length) {
-        setCurrentQuestion(currentQuestion + 1);
+        setCurrentQuestion((prev) => prev + 1);
         setSelectedOption(null);
-        setAnswerStatus(null);
       } else {
         setQuizFinished(true);
+        sendQuizResult();
       }
-    }, 1000);
+    }, 800);
   };
 
-  const restartQuiz = () => {
-    setCurrentQuestion(0);
-    setScore(0);
-    setQuizFinished(false);
-    setSelectedOption(null);
-    setAnswerStatus(null);
+  const sendQuizResult = async () => {
+    try {
+      const access_token = localStorage.getItem("access_token");
+      const user_id = localStorage.getItem("user_id");
+      const refresh_token = localStorage.getItem("refresh_token");
+
+      if (!access_token || !user_id || !refresh_token) {
+        throw new Error("Authentication tokens are missing.");
+      }
+
+      const response = await fetch(RESULT_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accesstoken": access_token,
+        },
+        body: JSON.stringify({
+          auth_params: { user_id, refresh_token },
+          payload: { quiz_score: score, user_id },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send quiz result.");
+      }
+
+      setMessage("✅ Quiz result sent successfully!");
+    } catch (error) {
+      console.error("Error sending quiz result:", error.message);
+      setMessage("❌ Failed to send quiz result. Please try again.");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <p>Loading Questions...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 p-6">
@@ -65,11 +330,7 @@ export default function QuizPage() {
         transition={{ duration: 0.6 }}
       >
         {quizFinished ? (
-          <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.4 }}
-          >
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }}>
             <h2 className="text-4xl font-bold text-white">Quiz Completed!</h2>
             <p className="text-lg mt-4 text-gray-300">
               Your Score:{" "}
@@ -77,26 +338,23 @@ export default function QuizPage() {
                 {score} / {questions.length}
               </span>
             </p>
-            <motion.button
-              onClick={restartQuiz}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-2xl transition-all"
-            >
-              Restart Quiz
-            </motion.button>
+            {message && (
+              <p className="mt-4 text-lg font-bold text-white">{message}</p>
+            )}
           </motion.div>
         ) : (
-          <motion.div
-            key={currentQuestion}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div key={currentQuestion} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="text-3xl font-bold text-white">{questions[currentQuestion].question}</h2>
 
+            <div className="text-white text-lg font-bold mt-4">
+              ⏳ Time Left:{" "}
+              <span className={timeLeft <= 10 ? "text-red-400" : "text-green-400"}>
+                {timeLeft}s
+              </span>
+            </div>
+
             <div className="mt-6 flex flex-col gap-4">
-              {questions[currentQuestion].options.map((option, index) => (
+              {["option_1", "option_2", "option_3", "option_4"].map((key, index) => (
                 <motion.button
                   key={index}
                   whileHover={{ scale: selectedOption ? 1 : 1.05 }}
@@ -104,22 +362,21 @@ export default function QuizPage() {
                   className={`px-6 py-3 text-white rounded-full border transition-all
                     ${
                       selectedOption
-                        ? option === questions[currentQuestion].answer
-                          ? "bg-green-500 border-green-600" // Correct
-                          : option === selectedOption
-                          ? "bg-red-500 border-red-600" // Wrong
+                        ? questions[currentQuestion][key] === questions[currentQuestion][`option_${questions[currentQuestion].correct_option.split(" ")[1]}`]
+                          ? "bg-green-500 border-green-600"
+                          : questions[currentQuestion][key] === selectedOption
+                          ? "bg-red-500 border-red-600"
                           : "bg-white/10 border-white/30"
                         : "bg-white/10 border-white/30 hover:bg-blue-500"
                     }
                   `}
-                  onClick={() => !selectedOption && handleAnswer(option)}
+                  onClick={() => !selectedOption && handleAnswer(questions[currentQuestion][key])}
                 >
-                  {option}
+                  {questions[currentQuestion][key]}
                 </motion.button>
               ))}
             </div>
 
-            {/* Custom Progress Bar */}
             <div className="w-full bg-white/20 rounded-full h-4 mt-6 overflow-hidden">
               <motion.div
                 className="h-4 bg-gradient-to-r from-blue-500 to-purple-500 transition-all"

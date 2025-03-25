@@ -4,12 +4,11 @@ const FreelancingStats = () => {
   const stats = [
     {
       percentage: "61%",
-      title: "Freelancer's time is devalued & taken advantage of",
+      title: "Freelancers time is devalued & taken advantage of",
       description: (
         <>
-          <span className="text-blue-600 font-extrabold">61%</span> of total project
-          time is spent on admin tasks like proposals, client hunting & chasing
-          payments.
+          <span className="text-blue-600 font-extrabold">61%</span> of total project time is spent on mundane admin. Hours of unpaid time spent on project admin
+
         </>
       ),
     },

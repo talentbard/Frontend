@@ -6,7 +6,7 @@ const Simplified = () => {
       {/* Main Headline */}
       <div className="text-center max-w-3xl">
         <h1 className="text-5xl md:text-5xl font-extrabold text-gray-900">
-          <span className="text-blue-600">Why Choose</span> Talentbard?
+          <span className="text-blue-600">Why </span> choose <span className="text-blue-600">Talentbard?</span>
         </h1>
         <p className="mt-4 text-lg md:text-2xl text-gray-700">
           Build, Collaborate, and Scale Effortlessly
@@ -36,27 +36,27 @@ const sections = [
   {
     image: "/Images/Talent-Page1.png",
     title: "Instantly Hire Pre-Vetted Talent",
-    description: "Skip the endless search. Find top-tier freelancers ready to work from day one.",
+    description: "Skip the endless search. Find top-tier talent ready to work from day one.",
   },
   {
     image: "/Images/Talent-Page5.png",
     title: "Effortless Hiring & Collaboration",
-    description: "Build agile teams, track projects in real-time, and manage freelancers seamlessly—just like a full-time workforce.",
+    description: "Build agile teams, track projects in real-time, and manage talent seamlessly—just like a full-time workforce.",
   },
   {
     image: "/Images/Talent-Page3.png",
     title: "AI-Driven Talent Scoring",
-    description: "Get data-backed insights on freelancer reliability, response time, and delivery speed.",
+    description: "Get data-backed insights on talent reliability, response time, and delivery speed.",
   },
   {
     image: "/Images/Talent-Page2.png",
     title: "Escrow Payment Management: Secure Payments & Smart Investments",
-    description: "Escrow-based payments ensure freelancers get paid on time, while startups earn yields on idle cash with low-risk investments.",
+    description: "Escrow-based payments ensure talent get paid on time, while startups earn yields on idle cash with low-risk investments.",
   },
   {
     image: "/Images/Talent-Page4.png",
     title: "Global Payments, Zero Hassle",
-    description: "Flat fees, zero FX markups, and same-day settlements help freelancers keep more of what they earn.",
+    description: "Flat fees, zero FX markups, and same-day settlements help talent keep more of what they earn.",
   },
 ];
 

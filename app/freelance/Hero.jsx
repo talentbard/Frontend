@@ -9,9 +9,9 @@ const Hero = () => {
    
       <div className="text-center max-w-4xl space-y-4">
         <h2 className="text-3xl md:text-5xl font-extrabold leading-snug text-white">
-          <span className="text-blue-600">Making Freelancing Mainstream</span> –  
-          as <span className="font-bold text-white">Seamless, Stable, and Secure</span>  
-          as a <span className="text-blue-400">Full-Time Job</span>
+          <span className="text-blue-600"> Get Hired Full-time Part-time Any time </span>  
+           <span className="font-bold text-white">: Seamless, Stable, and Secure </span>  
+           as a <span className="text-blue-400">Full-Time Job</span>
         </h2>
         
         <p className="text-gray-300 text-lg md:text-xl font-medium">
@@ -19,9 +19,9 @@ const Hero = () => {
           all in one powerful platform.
         </p>
         
-        <div className="mt-4">
+        <div className="mt-12">
           <button 
-            className="px-10 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+            className="px-10 py-3 mt-4 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
             onClick={() => router.push("/login/signup")}
           >
             Get Hired

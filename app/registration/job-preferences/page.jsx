@@ -32,7 +32,7 @@ const JobPreferences = () => {
   };
 
   const handleNext = () => {
-    router.push("/registration/status"); // Navigate to Work Experience page
+    router.push("/quizz"); // Navigate to Work Experience page
   };
 
   const handleBack = () => {

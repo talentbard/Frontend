@@ -10,7 +10,7 @@ const Footer = () => {
         <div>
           <h2 className="text-lg font-bold">TalentBard</h2>
           <p className="text-gray-400 text-sm mt-2">
-            Building the future of freelance work
+          Experience the Future of Startup Work
           </p>
         </div>
 
@@ -20,8 +20,9 @@ const Footer = () => {
             <li><Link href="/" className="hover:text-gray-200">About</Link></li>
 
             <li><Link href="/terms_condition/privacy_policy" className="hover:text-gray-200">Privacy Policy</Link></li>
-            <li><Link href="/terms_condition/terms_and_conditions" className="hover:text-gray-200">Terms</Link></li>
-            <li><Link href="/terms_condition/client_terms" className="hover:text-gray-200">Client Terms</Link></li>
+            <li><Link href="/terms_condition/terms_and_conditions" className="hover:text-gray-200">Site TOS</Link></li>
+            <li><Link href="/terms_condition/client_terms" className="hover:text-gray-200">Client TOS</Link></li>
+            <li><Link href="/terms_condition/talent_terms" className="hover:text-gray-200">Talent TOS</Link></li>
           </ul>
         </div> 
 

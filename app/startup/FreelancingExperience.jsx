@@ -68,35 +68,39 @@
 // ];
 
 // export default FreelanceExperience;
-
 "use client";
 import React from "react";
 
 const FreelanceExperience = () => {
+  const issues = [
+    { title: "Time Consuming", text: "Founders spend 40+ hours per month manually sourcing candidates, delaying product growth." },
+    { title: "Expensive", text: "Hiring costs range from ₹50,000 to ₹2,00,000 per hire, with increasing costs by 20% due to lost productivity." },
+    { title: "High Failure Rate", text: "50% of manual hires turn out to be a bad fit, costing startups 30% of the employee’s first-year salary." },
+    { title: "Founder Burnout", text: "72% of entrepreneurs report hiring stress as a major contributor to burnout and decision fatigue." },
+    { title: "Hard to Find the Right Talent", text: "The ideal 'triple-threat' hire (skilled, reliable, in-budget) is difficult to find, especially for remote teams." },
+    { title: "Inefficient Talent Vetting", text: "Screening, testing, and verifying candidates requires significant time, money, and effort." },
+    { title: "Collaboration & Management", text: "Managing remote, distributed teams lacks work transparency, requires coordination across time zones, and complicates performance tracking." },
+  ];
+
   return (
     <section className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-r from-blue-100 to-purple-100 px-4 sm:px-6 py-12">
       <div className="w-full max-w-screen-xl bg-white rounded-2xl p-6 sm:p-12 shadow-lg">
         {/* Heading */}
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-center text-gray-900">
-          Freelancing & Hiring Experience is <span className="text-blue-600">Broken</span>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center text-gray-900">
+        Tech <span className="text-blue-600">Talent Hiring </span> Experience <span className="text-blue-600">is Broken</span>
         </h2>
         <p className="text-gray-700 text-center mt-4 text-lg sm:text-xl">
-          What if freelancing was as stable and rewarding as a full-time job?
+        Startups Struggle to Scale On-Demand – Hiring is too rigid, slow, and costly for their dynamic needs.
         </p>
 
         {/* Issues List */}
         <div className="mt-12 flex flex-col space-y-6 w-full">
-          {[
-            { title: "Time Consuming", text: "Founders spend 40+ hours per month manually sourcing candidates, delaying product growth." },
-            { title: "Expensive", text: "Hiring costs range from ₹50,000 to ₹2,00,000 per hire, with increasing costs by 20% due to lost productivity." },
-            { title: "High Failure Rate", text: "50% of manual hires turn out to be a bad fit, costing startups 30% of the employee’s first-year salary." },
-            { title: "Founder Burnout", text: "A significant number of entrepreneurs report hiring stress as a major contributor to burnout and decision fatigue." },
-          ].map((issue, index) => (
+          {issues.map((issue, index) => (
             <div key={index} className="flex flex-col sm:flex-row items-center bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-xl transition w-full min-h-[140px]">
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-6 py-3 rounded-2xl w-full sm:w-72 text-center text-lg flex items-center justify-center min-h-[80px]">
                 {issue.title}
               </span>
-              <p className="mt-4 sm:mt-0 sm:ml-6 text-gray-800 text-lg text-center sm:text-left w-full flex items-center min-h-[80px]">
+              <p className="mt-4 sm:mt-0 sm:ml-6 text-black text-lg text-center sm:text-left w-full flex items-center min-h-[80px]">
                 {issue.text}
               </p>
             </div>
@@ -105,7 +109,7 @@ const FreelanceExperience = () => {
 
         {/* Call to Action */}
         <p className="text-center text-gray-800 mt-12 text-lg sm:text-2xl font-medium">
-          Why settle for this when you can hire skilled, reliable, in-budget freelancers on demand?
+          Why settle for this when you can hire skilled, reliable, in-budget talent on demand?
         </p>
       </div>
     </section>

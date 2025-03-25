@@ -74,12 +74,12 @@ const ITTalentAttraction = () => {
       {/* Main Headline */}
       <div className="text-center max-w-4xl px-4">
         <h1 className="text-4xl md:text-5xl font-extrabold text-black font-sans leading-tight">
-          <span className="text-blue-600">Attract</span> Top IT Talent <span className="text-blue-600">to Your Startup</span>
+          <span className="text-blue-600">Attract Top Tech Talent </span>  <span className="text-blue-600"></span>To Your Startup
         </h1>
         <p className="mt-4 font-semibold md:text-2xl text-gray-700 font-sans">
-          Your startup is more than just a company—it’s a story that top freelancers want to be part of.
+          Your startup is more than just a company—it’s a story that top talent want to be part of.
         </p>
-        <p className="mt-2 text-md md:text-lg text-gray-600 font-sans">
+        <p className="mt-2 text-lg text-gray-900 font-sans">
           Position your brand to attract, hire, and retain the best IT talent.
         </p>
       </div>
@@ -90,8 +90,8 @@ const ITTalentAttraction = () => {
         <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl shadow-md transition-transform transform hover:scale-105">
           <Briefcase className="text-blue-600 w-20 h-20" /> {/* Replaced image with an icon */}
           <h2 className="text-xl font-bold font-sans mt-4">Branded Startup Page</h2>
-          <p className="mt-2 text-md text-gray-600 font-sans">
-            <span className='text-blue-600 font-extrabold'>&nbsp;75%&nbsp;</span> of freelancers research companies before working with them. Craft a compelling startup profile.
+          <p className="mt-2 text-md text-gray-900 font-sans">
+            <span className='text-blue-600 font-extrabold'>&nbsp;75%&nbsp;</span> of talent research companies before working with them. Craft a compelling startup profile.
           </p>
         </div>
         
@@ -99,8 +99,8 @@ const ITTalentAttraction = () => {
         <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl shadow-md transition-transform transform hover:scale-105">
           <Rocket className="text-blue-600 w-20 h-20" /> {/* Replaced image with an icon */}
           <h2 className="text-xl font-bold font-sans mt-4">Showcase Real Impact</h2>
-          <p className="mt-2 text-md text-gray-600 font-sans">
-            Go beyond job listings. Highlight exciting projects, cutting-edge tech, and the meaningful work freelancers will contribute to.
+          <p className="mt-2 text-md text-gray-900 font-sans">
+            Go beyond job listings. Highlight exciting projects, cutting-edge tech, and the meaningful work talent will contribute to.
           </p>
         </div>
         
@@ -108,8 +108,8 @@ const ITTalentAttraction = () => {
         <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl shadow-md transition-transform transform hover:scale-105">
           <Users className="text-blue-600 w-20 h-20" /> {/* Replaced image with an icon */}
           <h2 className="text-xl font-bold font-sans mt-4">Build Long-Term Relationships</h2>
-          <p className="mt-2 text-md text-gray-600 font-sans">
-            Attract skilled freelancers who align with your vision, ensuring trust, consistency, and a reliable talent pool.
+          <p className="mt-2 text-md text-gray-900 font-sans">
+            Attract skilled talent who align with your vision, ensuring trust, consistency, and a reliable talent pool.
           </p>
         </div>
       </div>

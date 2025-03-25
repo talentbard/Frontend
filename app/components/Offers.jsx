@@ -1,16 +1,17 @@
+"use client"
 import Image from "next/image";
-
+import { useRouter } from "next/navigation";
 const offerings = [
   {
     head: "Effortless Hiring Experience",
     title: "Hire & Collaborate with Ease",
-    desc: "Effortless freelance hiring with pre-vetted talent, on-demand teams, and real-time tracking. Streamline your workflow and boost productivity with our intuitive platform designed for seamless collaboration.",
+    desc: "Effortless On-Demand hiring with pre-vetted talent, on-demand teams, and real-time tracking. Streamline your workflow and boost productivity with our intuitive platform designed for seamless collaboration.",
     image: "/hire-and-collaborate.jpg",
   },
   {
-    head: "Streamlined Freelance Solutions",
+    head: "Streamlined Talent Solutions",
     title: "Flexible & Seamless Solution",
-    desc: "Freelancers enjoy stability with automated client matchmaking and AI-generated contracts. Our platform ensures smooth communication, secure agreements, and hassle-free project execution.",
+    desc: "Talents enjoy stability with automated client matchmaking and AI-generated contracts. Our platform ensures smooth communication, secure agreements, and hassle-free project execution.",
     image: "/flexible.jpg",
   },
   {
@@ -28,17 +29,18 @@ const offerings = [
 ];
 
 const Offers = () => {
+  const router = useRouter();
   return (
+    
     <section className="py-16 px-6 md:px-20 bg-gradient-to-b from-blue-200 to-white">
       {/* Section Title */}
       <div className="text-center">
-        <h3 className="text-3xl font-bold mb-2 border-black inline-block px-2">
+        <h3 className="text-4xl font-bold mb-2 border-black inline-block px-2">
           What TalentBard Offers
         </h3>
         <p className="text-2xl font-semibold max-w-4xl mx-auto px-4 leading-relaxed">
 
-          Explore our diverse range of features designed to empower you and your business,  
-          providing clarity and driving growth to new heights.
+  
         </p>
       </div>
 
@@ -72,7 +74,16 @@ const Offers = () => {
             </div>
           </div>
         ))}
+        <div className="flex flex-col md:flex-row justify-center">
+        <button
+          onClick={() => router.push("/login/signup")}
+          className="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+        >
+          Get Started
+        </button>
+        </div>
       </div>
+      
     </section>
   );
 };

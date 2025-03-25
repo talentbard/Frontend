@@ -235,10 +235,10 @@ const Signup = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Signup successful! Redirecting to Landing Page");
-        router.push("/");
+        alert("Register successful! Redirecting to Landing Page");
+        router.push("/registration/status");
       } else {
-        alert(data.error || "Signup failed. Please try again.");
+        alert(data.error || "Register failed. Please try again.");
       }
     } catch (error) {
       console.error("Signup error:", error);
