@@ -28,19 +28,18 @@ const PortfolioReferences = () => {
       setAuthParams({ user_id, refresh_token, access_token });
     }
   }, []);
+const handleFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-  
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { // Limit file to 2MB
-      alert("File size should be under 2MB.");
-      return;
-    }
-  
-    const base64String = await convertFileToBase64(file);
-    setPortfolio({ ...portfolio, resume: base64String });
-  };
+  if (file.size > 2 * 1024 * 1024) {
+    alert("File size should be under 2MB.");
+    return;
+  }
+
+  setPortfolio({ ...portfolio, resume: file }); // store actual file
+};
+
   const handleChange = (index, type, value) => {
     setPortfolio((prev) => {
       const updatedList = [...prev[type]];
@@ -68,55 +67,53 @@ const PortfolioReferences = () => {
     router.push("/registration/work-experience");
   };
 
+ 
   const handleNext = async () => {
-    const apiUrl = "https://backend.talentbard.com/talent/portfolio/";
-    setLoading(true);
-  
-    try {
-      const requestBody = {
-        auth_params: {
-          user_id: authParams.user_id,
-          refresh_token: authParams.refresh_token,
-        },
-        payload: {
-          resume: portfolio.resume || null, // Ensure it’s properly set
-          project_links: portfolio.projectLinks.map((link) =>
-            link.length > MAX_LENGTH ? link.substring(0, MAX_LENGTH) : link
-          ),
-          references: portfolio.references.map((ref) =>
-            ref.length > MAX_LENGTH ? ref.substring(0, MAX_LENGTH) : ref
-          ),
-          user_id: authParams.user_id,
-        },
-      };
-      
-  
-      console.log("Request Payload:", JSON.stringify(requestBody, null, 2));
-  
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          accesstoken: authParams.access_token,
-        },
-        body: JSON.stringify(requestBody),
-      });
-  
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to submit portfolio. Status: ${response.status}, Error: ${errorText}`);
-      }
-  
-      alert("Portfolio submitted successfully! 🎉");
-      router.push("/registration/work-terms");
-  
-    } catch (error) {
-      console.error("API Error:", error);
-      alert("Failed to submit portfolio. Please try again.");
-    } finally {
-      setLoading(false);
+  const apiUrl = "https://backend.talentbard.com/talent/portfolio/";
+  setLoading(true);
+
+  try {
+    const formData = new FormData();
+    formData.append("user_id", authParams.user_id);
+    formData.append("refresh_token", authParams.refresh_token);
+
+    if (portfolio.resume) {
+      formData.append("resume", portfolio.resume); // Direct file append
     }
-  };
+
+    portfolio.projectLinks.forEach((link, index) => {
+      formData.append(`project_links[${index}]`, link.substring(0, MAX_LENGTH));
+    });
+
+    portfolio.references.forEach((ref, index) => {
+      formData.append(`references[${index}]`, ref.substring(0, MAX_LENGTH));
+    });
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        accesstoken: authParams.access_token,
+        // NOTE: DO NOT set Content-Type manually for FormData
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to submit portfolio. Status: ${response.status}, Error: ${errorText}`);
+    }
+
+    alert("Portfolio submitted successfully! 🎉");
+    router.push("/registration/work-terms");
+
+  } catch (error) {
+    console.error("API Error:", error);
+    alert("Failed to submit portfolio. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
   
   const convertFileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -139,9 +136,10 @@ const PortfolioReferences = () => {
           onChange={handleFileChange}
           className="border p-2 rounded-md w-full"
         />
-        {portfolio.resume && (
-          <p className="mt-2 text-green-600">{portfolio.resume.name} uploaded</p>
-        )}
+       {portfolio.resume && (
+  <p className="mt-2 text-green-600">{portfolio.resume.name} uploaded</p>
+)}
+
       </div>
 
       {/* Project Links */}

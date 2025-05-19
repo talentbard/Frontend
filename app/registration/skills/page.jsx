@@ -568,10 +568,7 @@ console.log("certificate",certificates);
           />
         </div>
       ))}
-      <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" onClick={addSkill}>
-        + Add Another Skill
-      </button>
-
+  
       {/* Secondary Skills */}
       <div className="mt-6">
         <label className="block font-semibold">Secondary Skills</label>
