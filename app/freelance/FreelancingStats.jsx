@@ -241,7 +241,11 @@ const HiringStats = () => {
   return (
     <section className="w-full bg-white py-16 px-6 text-center">
       {/* Header */}
-  
+      <h2 className="text-4xl md:text-5xl font-extrabold text-black leading-tight">
+        {/* Freelancing Experience is{" "} */}
+        Full time Job Experience is 
+        <span className="text-blue-600">Broken</span>
+      </h2>
       {/* Stats Section */}
       <div className="mt-8 flex flex-col md:flex-row justify-center gap-12">
         {stats.map((stat, index) => (

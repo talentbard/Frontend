@@ -137,8 +137,9 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-
+import { useNavigate } from "react-router-dom";
 export default function AssignmentSubmission() {
+  const navigate=useNavigate();
   const [githubLink, setGithubLink] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -290,10 +291,15 @@ export default function AssignmentSubmission() {
           />
           <button
             type="submit"
+            onClick={()=>
+            {
+              navigate('/interview');
+            }
+            }
             className="w-full mt-4 px-6 py-3 text-lg bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-all duration-300"
             disabled={loading}
           >
-            {loading ? "Submitting..." : "Submit Assignment"}
+            {loading ? "Submitting..." : "Submit Assignment and Start Interview"}
           </button>
         </form>
 

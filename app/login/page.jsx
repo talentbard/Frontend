@@ -1,163 +1,10 @@
-"use client";
-import axios from "axios";
-import { useState, useEffect } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import checkRegistrationStatus from "./checkRegistrationStatus";
-
-const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isFreelancer, setIsFreelancer] = useState(true);
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    // Ensure values are fresh when component mounts
-    setFormData((prev) => ({
-      ...prev,
-      userId: localStorage.getItem("user_id") || null,
-    }));
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(null);
-  
-    if (!formData.email || !formData.password) {
-      setError("Both email and password are required.");
-      return;
-    }
-  
-    const userId = localStorage.getItem("user_id");
-    const refreshToken = localStorage.getItem("refresh_token");
-    const accessToken = localStorage.getItem("access_token");
-  
-    try {
-      const response = await axios.post(
-        "https://backend.talentbard.com/user/login/",
-        {
-          auth_params: {
-            user_id: userId || "your_user_id",
-            refresh_token: refreshToken || "your_refresh_token",
-          },
-          payload: {
-            email: formData.email,
-            role: isFreelancer ? "talent" : "company",
-            password: formData.password,
-          },
-        },
-      );
-  
-      console.log("Login Response:", response.data); // Check response data
-  
-      const { access_token, refresh_token, user_id} = response.data;
-  
-      if (access_token) {
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("refresh_token", refresh_token);
-        localStorage.setItem("user_id", user_id);
-  
-        console.log("Stored Tokens:", {
-          access_token: localStorage.getItem("access_token"),
-          refresh_token: localStorage.getItem("refresh_token"),
-          user_id: localStorage.getItem("user_id"),
-        });
-  
-        await checkRegistrationStatus(user_id, access_token, refresh_token, isFreelancer, router);
-
-      } else {
-        setError("Login failed. No token received.");
-      }
-    } catch (err) {
-      console.error("Login Error:", err);
-      console.log("Error Response:", err.response?.data); // Log error response
-      setError(err.response?.data?.error || "Login failed. Please try again.");
-    }
-  };
-  
-
-  return (
-    <div className={`flex justify-center items-center min-h-screen ${isFreelancer ? "bg-gradient-to-r from-purple-200 to-blue-400 p-4" : "bg-gradient-to-r from-blue-400 to-purple-200 p-4"}`}>
-      <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-        {/* Role Toggle Buttons */}
-        <div className="flex justify-center mb-6">
-          <button
-            className={`px-5 py-3 rounded-l-lg font-semibold transition-all ${isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`}
-            onClick={() => setIsFreelancer(true)}
-          >
-            Talent
-          </button>
-          <button
-            className={`px-5 py-3 rounded-r-lg font-semibold transition-all ${!isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`}
-            onClick={() => setIsFreelancer(false)}
-          >
-            Company
-          </button>
-        </div>
-
-        {/* Login Form */}
-        <h2 className="text-3xl font-extrabold text-gray-800 mb-3">
-          {isFreelancer ? "Freelancer Login" : "Company Login"}
-        </h2>
-        <p className="text-gray-500 mb-6">Sign in to your {isFreelancer ? "freelancer" : "company"} account</p>
-
-        <div className="mb-4">
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-sm"
-          />
-        </div>
-
-        <div className="mb-4 relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-sm"
-          />
-          <button type="button" className="absolute top-2.5 right-4 text-gray-500" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-          </button>
-        </div>
-
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-
-        <button onClick={handleLogin} className="w-full bg-indigo-600 text-white py-3 rounded-xl text-lg font-semibold shadow-md hover:bg-indigo-700 transition-all">
-          Sign In
-        </button>
-
-        <p className="text-gray-600 mt-3">
-          Don't have an account?{" "}
-          <Link href="/login/signup" className="text-indigo-500 font-semibold hover:underline">
-            Sign Up
-          </Link>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default Login;
-
 // "use client";
 // import axios from "axios";
 // import { useState, useEffect } from "react";
 // import { Eye, EyeOff } from "lucide-react";
 // import Link from "next/link";
 // import { useRouter } from "next/navigation";
-// import NavBar from "../registration/Navbar";
+// import checkRegistrationStatus from "./checkRegistrationStatus";
 
 // const Login = () => {
 //   const [showPassword, setShowPassword] = useState(false);
@@ -222,7 +69,7 @@ export default Login;
 //           user_id: localStorage.getItem("user_id"),
 //         });
   
-//         await NavBar(user_id, access_token, refresh_token, isFreelancer);
+//         await checkRegistrationStatus(user_id, access_token, refresh_token, isFreelancer, router);
 
 //       } else {
 //         setError("Login failed. No token received.");
@@ -303,3 +150,155 @@ export default Login;
 // };
 
 // export default Login;
+
+
+"use client";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import checkRegistrationStatus from "./checkRegistrationStatus";
+
+const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isFreelancer, setIsFreelancer] = useState(true);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Ensure values are fresh when component mounts
+    setFormData((prev) => ({
+      ...prev,
+      userId: localStorage.getItem("user_id") || null,
+    }));
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(null);
+  
+    if (!formData.email || !formData.password) {
+      setError("Both email and password are required.");
+      return;
+    }
+  
+    const userId = localStorage.getItem("user_id");
+    const refreshToken = localStorage.getItem("refresh_token");
+    const accessToken = localStorage.getItem("access_token");
+  
+    try {
+      const response = await axios.post(
+        "https://backend.talentbard.com/user/login/",
+        {
+          auth_params: {
+            user_id: userId || "your_user_id",
+            refresh_token: refreshToken || "your_refresh_token",
+          },
+          payload: {
+            email: formData.email,
+            role: isFreelancer ? "talent" : "company",
+            password: formData.password,
+          },
+        },
+      );
+  
+      console.log("Login Response:", response.data); // Check response data
+  
+      const { access_token, refresh_token, user_id} = response.data;
+  
+      if (access_token) {
+        localStorage.setItem("access_token", access_token);
+        localStorage.setItem("refresh_token", refresh_token);
+        localStorage.setItem("user_id", user_id);
+  
+        console.log("Stored Tokens:", {
+          access_token: localStorage.getItem("access_token"),
+          refresh_token: localStorage.getItem("refresh_token"),
+          user_id: localStorage.getItem("user_id"),
+        });
+  
+        await checkRegistrationStatus(user_id, access_token, refresh_token, isFreelancer, router);
+
+      } else {
+        setError("Login failed. No token received.");
+      }
+    } catch (err) {
+      setError("Invalid email or password");
+    }
+  };
+  
+
+  return (
+    <div className={`flex justify-center items-center min-h-screen ${isFreelancer ? "bg-gradient-to-r from-purple-200 to-blue-400 p-4" : "bg-gradient-to-r from-blue-400 to-purple-200 p-4"}`}>
+      <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
+        {/* Role Toggle Buttons */}
+        <div className="flex justify-center mb-6">
+          <button
+            className={`px-5 py-3 rounded-l-lg font-semibold transition-all ${isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`}
+            onClick={() => setIsFreelancer(true)}
+          >
+            Talent
+          </button>
+          <button
+            className={`px-5 py-3 rounded-r-lg font-semibold transition-all ${!isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`}
+            onClick={() => setIsFreelancer(false)}
+          >
+            Company
+          </button>
+        </div>
+
+        {/* Login Form */}
+        <h2 className="text-3xl font-extrabold text-gray-800 mb-3">
+          {isFreelancer ? "Talent Login" : "Company Login"}
+        </h2>
+        <p className="text-gray-500 mb-6">Sign in to your {isFreelancer ? "talent" : "company"} account</p>
+
+        <div className="mb-4">
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Email"
+            className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-sm"
+          />
+        </div>
+
+        <div className="mb-4 relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Password"
+            className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-sm"
+          />
+          <button type="button" className="absolute top-2.5 right-4 text-gray-500" onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+          </button>
+        </div>
+
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+
+        <button onClick={handleLogin} className="w-full bg-indigo-600 text-white py-3 rounded-xl text-lg font-semibold shadow-md hover:bg-indigo-700 transition-all">
+          Log In
+        </button>
+
+        <p className="text-gray-600 mt-3">
+          Don't have an account?{" "}
+          <Link href="/login/signup" className="text-indigo-500 font-semibold hover:underline">
+            Sign Up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

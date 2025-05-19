@@ -67,7 +67,7 @@ const PersonalInfo = () => {
       router.push("/registration/skills");
     } catch (err) {
       console.error("Registration Error:", err);
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+     
     } finally {
       setLoading(false);
     }

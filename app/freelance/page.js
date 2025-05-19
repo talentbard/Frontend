@@ -14,8 +14,9 @@ export default function Page() {
       <Navbar/>
       <div className="pt-[64px]">  
         <Hero></Hero>
-        <FreelancingStats/>
+        
         <HiringStats/>
+        <FreelancingStats/>
         <Simplified/>
       
         <Application></Application>
