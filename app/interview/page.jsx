@@ -1,170 +1,693 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import lottie from "lottie-web";
 
-import { useEffect, useState } from "react";
+const FETCH_QUESTIONS_API_URL = "https://backend.talentbard.com/talent/interview_get_questions_view/";
+const SUBMIT_ANSWERS_API_URL = "https://backend.talentbard.com/talent/interview_evaluation_view/";
 
-const InterviewSessionPage = () => {
+export default function InterviewPage() {
+  const router = useRouter();
   const [questions, setQuestions] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [tabSwitchCount, setTabSwitchCount] = useState(0);
-  const [timer, setTimer] = useState(3600); // 1 hour in seconds
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isWebcamOn, setIsWebcamOn] = useState(false);
+  const [interviewStarted, setInterviewStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(40 * 60); // 40 minutes in seconds
+  const [suspiciousActivity, setSuspiciousActivity] = useState([]);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const openCVRef = useRef(null);
+  const canvasRef = useRef(null);
+  const lottieRef = useRef(null);
+  const animationContainerRef = useRef(null);
+  const raviVoiceRef = useRef(null);
 
+  // Sanitize input to prevent JSON parsing issues
+  const sanitizeInput = (input) => {
+    if (typeof input !== "string") return "";
+    return input
+      .replace(/[\r\n]+/g, " ")
+      .replace(/"/g, '\\"')
+      .replace(/\t/g, " ");
+  };
+
+  // Prevent paste in textarea and log as suspicious activity
+  const handlePaste = (e) => {
+    e.preventDefault();
+    setMessage("❌ Pasting is not allowed. Please type your answer.");
+    if (interviewStarted) {
+      setSuspiciousActivity((prev) => [
+        ...prev,
+        `Paste attempt detected at ${new Date().toLocaleTimeString()}`,
+      ]);
+    }
+    setTimeout(() => setMessage(""), 3000);
+  };
+
+  // Load available voices for TTS with retry mechanism
   useEffect(() => {
-    const fetchQuestions = async () => {
-      const accessToken = localStorage.getItem("access_token");
-      try {
-        const response = await fetch("https://backend.talentbard.com/interview/questions/", {
-          headers: {
-            "Accesstoken": accessToken,
-          },
-        });
-        const data = await response.json();
-        setQuestions(data.questions || []);
-      } catch (error) {
-        console.error("Error fetching questions:", error);
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+        console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+        // Automatically select Microsoft Ravi
+        const raviVoiceIndex = voices.findIndex(voice => voice.name.includes("Microsoft Ravi"));
+        if (raviVoiceIndex !== -1) {
+          raviVoiceRef.current = voices[raviVoiceIndex];
+          console.log("Automatically selected voice: Microsoft Ravi");
+        } else {
+          const defaultVoiceIndex = voices.findIndex(v => v.lang === "en-US");
+          if (defaultVoiceIndex !== -1) {
+            raviVoiceRef.current = voices[defaultVoiceIndex];
+            console.log("Microsoft Ravi not found; defaulting to:", voices[defaultVoiceIndex].name);
+          }
+        }
       }
     };
 
-    fetchQuestions();
-  }, []);
+    // Voices may not be available immediately; listen for changes
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices(); // Initial call
 
-//   useEffect(() => {
-//     const handleBlur = () => {
-//       setTabSwitchCount((prev) => {
-//         const newCount = prev + 1;
-//         if (newCount === 1) {
-//           alert("⚠ You left the tab. This is your only warning. Do not switch tabs again.");
-//         } else if (newCount > 1) {
-//           alert("❌ You left the tab again. Interview will now be submitted.");
-//           handleSubmit();
-//         }
-//         return newCount;
-//       });
-//     };
-
-//     const goFullScreen = () => {
-//       const el = document.documentElement;
-//       if (el.requestFullscreen) el.requestFullscreen();
-//       else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-//       else if (el.msRequestFullscreen) el.msRequestFullscreen();
-//     };
-
-//     goFullScreen();
-//     window.addEventListener("blur", handleBlur);
-
-//     return () => {
-//       window.removeEventListener("blur", handleBlur);
-//     };
-//   }, []);
-
-  useEffect(() => {
-    const countdown = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdown);
-          handleSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
+    // Retry if voices aren't loaded
+    const retryInterval = setInterval(() => {
+      if (availableVoices.length === 0) {
+        console.log("Retrying to load voices...");
+        loadVoices();
+      } else {
+        clearInterval(retryInterval);
+      }
     }, 1000);
 
-    return () => clearInterval(countdown);
+    return () => clearInterval(retryInterval);
   }, []);
 
-  const handleAnswerChange = (e) => {
-    setAnswers({ ...answers, [currentIndex]: e.target.value });
+  // Load Lottie animation
+  useEffect(() => {
+    if (animationContainerRef.current) {
+      try {
+        lottieRef.current = lottie.loadAnimation({
+          container: animationContainerRef.current,
+          renderer: "svg",
+          loop: true,
+          autoplay: false,
+          path: "/animations/avatar.json",
+        });
+        console.log("Lottie animation loaded successfully");
+      } catch (err) {
+        console.error("Failed to load Lottie animation:", err.message);
+        setMessage("⚠️ Failed to load avatar animation. TTS will still work.");
+        setTimeout(() => setMessage(""), 3000);
+      }
+      return () => {
+        lottieRef.current?.destroy();
+      };
+    }
+  }, []);
+
+  // Test voice function
+  const testVoice = () => {
+    if (!window.SpeechSynthesis || isSpeaking) {
+      console.log("TTS test skipped:", { isSpeaking });
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance("This is a test of the metallic voice.");
+    utterance.lang = "en-IN"; // Match Ravi's language
+    utterance.volume = 1.0;
+
+    if (raviVoiceRef.current) {
+      utterance.voice = raviVoiceRef.current;
+      utterance.pitch = 2.0; // Max pitch for a tinny, metallic tone
+      utterance.rate = 0.6; // Slower rate for robotic feel
+      console.log("Testing voice:", raviVoiceRef.current.name);
+    } else {
+      utterance.pitch = 2.0;
+      utterance.rate = 0.6;
+      console.log("Testing default voice with metallic adjustments");
+      setMessage("⚠️ Microsoft Ravi not found. Using default voice with metallic adjustments.");
+      setTimeout(() => setMessage(""), 5000);
+    }
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      lottieRef.current?.play();
+    };
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      lottieRef.current?.pause();
+    };
+    utterance.onerror = (event) => {
+      console.error("TTS test error:", event.error);
+      setMessage("❌ Error testing voice. Please try again.");
+      setIsSpeaking(false);
+      lottieRef.current?.pause();
+      setTimeout(() => setMessage(""), 3000);
+    };
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
   };
 
-  const nextQuestion = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+  // Read question using TTS with selected voice
+  const readQuestion = () => {
+    if (!window.SpeechSynthesis || isSpeaking || !questions[currentQuestionIndex]) {
+      console.log("TTS skipped:", { isSpeaking, question: questions[currentQuestionIndex] });
+      return;
+    }
+
+    if (availableVoices.length === 0) {
+      console.log("Voices not yet loaded; delaying TTS");
+      setMessage("⚠️ Voices not loaded yet. Please wait or test the voice manually.");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(questions[currentQuestionIndex]);
+    utterance.lang = "en-IN"; // Match Ravi's language
+    utterance.volume = 1.0;
+
+    if (raviVoiceRef.current) {
+      utterance.voice = raviVoiceRef.current;
+      utterance.pitch = 2.0; // Max pitch for a tinny, metallic tone
+      utterance.rate = 0.6; // Slower rate for robotic feel
+      console.log("Using voice:", raviVoiceRef.current.name);
+    } else {
+      utterance.pitch = 2.0;
+      utterance.rate = 0.6;
+      console.log("Using default voice with metallic adjustments");
+      setMessage("⚠️ Microsoft Ravi not found. Using default voice with metallic adjustments.");
+      setTimeout(() => setMessage(""), 5000);
+    }
+
+    utterance.onstart = () => {
+      console.log("TTS started for question:", questions[currentQuestionIndex]);
+      setIsSpeaking(true);
+      lottieRef.current?.play();
+    };
+    utterance.onend = () => {
+      console.log("TTS ended");
+      setIsSpeaking(false);
+      lottieRef.current?.pause();
+    };
+    utterance.onerror = (event) => {
+      console.error("TTS error:", event.error);
+      setMessage("❌ Error reading question. Please read it manually.");
+      setIsSpeaking(false);
+      lottieRef.current?.pause();
+      setTimeout(() => setMessage(""), 3000);
+    };
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Load OpenCV.js
+  useEffect(() => {
+    const loadOpenCV = async () => {
+      try {
+        const script = document.createElement("script");
+        script.src = "/js/opencv.js";
+        script.async = true;
+        document.head.appendChild(script);
+        script.onload = () => {
+          console.log("OpenCV.js loaded successfully");
+          if (window.cv) {
+            window.cv.onRuntimeInitialized = () => {
+              openCVRef.current = window.cv;
+              console.log("OpenCV.js runtime initialized");
+            };
+          } else {
+            throw new Error("window.cv not defined");
+          }
+        };
+        script.onerror = () => {
+          throw new Error("Failed to load OpenCV.js");
+        };
+      } catch (err) {
+        console.error("Error loading OpenCV.js:", err.message);
+        setMessage("❌ Failed to load face detection. Please try again or contact support.");
+      }
+    };
+    loadOpenCV();
+  }, []);
+
+  // Initialize webcam
+  const initWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setIsWebcamOn(true);
+        console.log("Webcam initialized successfully");
+      }
+    } catch (err) {
+      console.error("Error accessing webcam:", err.message);
+      setMessage("❌ Please allow webcam access to start the interview.");
     }
   };
 
-  const prevQuestion = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+  // Cleanup webcam
+  useEffect(() => {
+    initWebcam();
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
+  // Face and eye detection (OpenCV.js)
+  const detectFacesAndEyesOpenCV = async () => {
+    if (videoRef.current && interviewStarted && openCVRef.current && canvasRef.current) {
+      try {
+        const cv = openCVRef.current;
+        const video = videoRef.current;
+        canvasRef.current.width = video.videoWidth;
+        canvasRef.current.height = video.videoHeight;
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height);
+        const src = cv.imread(canvasRef.current);
+        const gray = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+        const faceCascade = new cv.CascadeClassifier();
+        const eyeCascade = new cv.CascadeClassifier();
+        const faceCascadeFile = "/models/haarcascade_frontalface_default.xml";
+        const eyeCascadeFile = "/models/haarcascade_eye.xml";
+
+        const faceResponse = await fetch(faceCascadeFile);
+        const eyeResponse = await fetch(eyeCascadeFile);
+        if (!faceResponse.ok || !eyeResponse.ok) {
+          throw new Error("Failed to load Haar Cascade files");
+        }
+        const faceData = await faceResponse.arrayBuffer();
+        const eyeData = await eyeResponse.arrayBuffer();
+        cv.FS_createDataFile("/", "face.xml", new Uint8Array(faceData), true, false, false);
+        cv.FS_createDataFile("/", "eye.xml", new Uint8Array(eyeData), true, false, false);
+        faceCascade.load("face.xml");
+        eyeCascade.load("eye.xml");
+
+        let faces = new cv.RectVector();
+        faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0);
+
+        if (faces.size() === 0) {
+          setSuspiciousActivity((prev) => [
+            ...prev,
+            `No face detected at ${new Date().toLocaleTimeString()}`,
+          ]);
+        } else if (faces.size() > 1) {
+          setSuspiciousActivity((prev) => [
+            ...prev,
+            `Multiple faces detected at ${new Date().toLocaleTimeString()}`,
+          ]);
+        } else {
+          const face = faces.get(0);
+          const faceRegion = gray.roi(face);
+          let eyes = new cv.RectVector();
+          eyeCascade.detectMultiScale(faceRegion, eyes, 1.1, 3, 0);
+
+          if (eyes.size() < 2) {
+            setSuspiciousActivity((prev) => [
+              ...prev,
+              `Eyes not detected at ${new Date().toLocaleTimeString()}`,
+            ]);
+          } else {
+            const eye1 = eyes.get(0);
+            const eye2 = eyes.get(1);
+            const eyeCenterX = (eye1.x + eye2.x + eye1.width / 2 + eye2.width / 2) / 2;
+            const faceCenterX = face.width / 2;
+            if (Math.abs(eyeCenterX - faceCenterX) > face.width * 0.3) {
+              setSuspiciousActivity((prev) => [
+                ...prev,
+                `Gaze off-center at ${new Date().toLocaleTimeString()}`,
+              ]);
+            }
+          }
+          faceRegion.delete();
+          eyes.delete();
+        }
+
+        src.delete();
+        gray.delete();
+        faces.delete();
+        faceCascade.delete();
+        eyeCascade.delete();
+      } catch (err) {
+        console.error("Error during OpenCV detection:", err.message);
+      }
     }
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
+  // Detection interval and auto-submit on suspicious activity
+  useEffect(() => {
+    if (interviewStarted) {
+      const detectionInterval = setInterval(detectFacesAndEyesOpenCV, 5000);
+      if (suspiciousActivity.length > 2) {
+        handleAutoSubmit("❌ Interview terminated due to multiple suspicious activities.");
+      }
+      return () => clearInterval(detectionInterval);
+    }
+  }, [interviewStarted, suspiciousActivity]);
+
+  // Fetch questions
+  const fetchQuestions = async () => {
     const userId = localStorage.getItem("user_id");
     const accessToken = localStorage.getItem("access_token");
     const refreshToken = localStorage.getItem("refresh_token");
+
+    if (!userId || !accessToken || !refreshToken) {
+      setMessage("❌ Authentication details missing. Please log in again.");
+      router.push("/login");
+      return;
+    }
+
     try {
-      await fetch("https://backend.talentbard.com/interview/submit/", {
+      const response = await fetch(FETCH_QUESTIONS_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accesstoken": accessToken,
+          "accesstoken": accessToken,
         },
         body: JSON.stringify({
           auth_params: { user_id: userId, refresh_token: refreshToken },
-          payload: {
-            responses: questions.map((q, i) => ({ question: q, answer: answers[i] || "" })),
-          },
+          payload: { user_id: userId },
         }),
       });
-      alert("✅ Interview session submitted.");
+
+      const data = await response.json();
+      if (!response.ok || !data.payload || !data.payload.questions) {
+        throw new Error(data.error || "Failed to fetch questions");
+      }
+
+      const fetchedQuestions = data.payload.questions;
+      if (!Array.isArray(fetchedQuestions) || fetchedQuestions.length !== 10) {
+        throw new Error(`Expected exactly 10 questions, got ${fetchedQuestions.length}`);
+      }
+
+      setQuestions(fetchedQuestions);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching questions:", err.message);
+      setError(err.message);
+      setMessage("❌ Failed to load interview questions. Please try again or contact support.");
+    }
+  };
+
+  // Read question when index changes
+  useEffect(() => {
+    if (interviewStarted && questions[currentQuestionIndex]) {
+      readQuestion();
+    }
+  }, [currentQuestionIndex, questions, interviewStarted]);
+
+  // Tab switching detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && interviewStarted) {
+        setSuspiciousActivity((prev) => [
+          ...prev,
+          `Tab switch detected at ${new Date().toLocaleTimeString()}`,
+        ]);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [interviewStarted]);
+
+  // Timer logic
+  useEffect(() => {
+    if (interviewStarted && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleAutoSubmit("⏰ Time's up! Submitting your answers...");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [interviewStarted, timeLeft]);
+
+  // Initialize questions
+  useEffect(() => {
+    fetchQuestions();
+  }, [router]);
+
+  const handleAnswerChange = (index, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [index]: sanitizeInput(value),
+    }));
+  };
+
+  const handleAutoSubmit = async (message) => {
+    setMessage(message);
+    setLoading(true);
+
+    const userId = localStorage.getItem("user_id");
+    const accessToken = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    if (!userId || !accessToken || !refreshToken) {
+      setMessage("❌ Authentication details missing. Please log in again.");
+      setLoading(false);
+      router.push("/login");
+      return;
+    }
+
+    const payload = {
+      auth_params: {
+        user_id: userId,
+        refresh_token: refreshToken,
+      },
+      payload: {
+        user_id: userId,
+        answers: questions.map((question, index) => ({
+          question: sanitizeInput(question),
+          answer: sanitizeInput(answers[index] || ""),
+        })),
+        cheating_suspected: suspiciousActivity.length > 0,
+      },
+    };
+
+    try {
+      console.log("Submitting payload:", JSON.stringify(payload, null, 2));
+      try {
+        JSON.stringify(payload);
+      } catch (jsonError) {
+        throw new Error(`Invalid JSON payload: ${jsonError.message}`);
+      }
+
+      const response = await fetch(SUBMIT_ANSWERS_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accesstoken": accessToken,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || `Submission failed with status ${response.status}`);
+      }
+
+      if (!data.payload || !data.payload.interview_answer_id) {
+        throw new Error("Invalid response structure from server");
+      }
+
+      setMessage("✅ Interview answers submitted successfully! Redirecting...");
+      setTimeout(() => router.push("/submission-status?message=Interview submitted successfully!"), 2000);
     } catch (error) {
-      console.error("Submission failed:", error);
+      console.error("Error submitting answers:", error.message);
+      if (error.message.includes("401")) {
+        setMessage("❌ Unauthorized: Please log in again.");
+        router.push("/login");
+      } else {
+        setMessage(`❌ Error submitting answers: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const formatTime = (secs) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!answers[currentQuestionIndex]?.trim()) {
+      setMessage("❌ Please provide an answer for the current question.");
+      return;
+    }
+    await handleAutoSubmit("✅ Interview answers submitted successfully! Redirecting...");
   };
 
-  if (!questions.length) {
-    return <div className="text-white p-6">Loading questions...</div>;
-  }
+  const handleStartInterview = () => {
+    if (isWebcamOn) {
+      setInterviewStarted(true);
+    } else {
+      setMessage("❌ Please enable your webcam to start the interview.");
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (answers[currentQuestionIndex]?.trim()) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+      setMessage("");
+    } else {
+      setMessage("❌ Please provide an answer before proceeding.");
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-6">
-      <div className="text-2xl font-bold mb-4">🧠 AI Interview Session</div>
-      <div className="mb-2">⏱ Time Remaining: {formatTime(timer)}</div>
-      <div className="mb-4 text-lg">Question {currentIndex + 1} of {questions.length}</div>
-      <div className="bg-white/10 border border-white/20 p-6 rounded-xl max-w-2xl w-full">
-        <p className="text-xl font-semibold mb-4">{questions[currentIndex]}</p>
-        <textarea
-          className="w-full h-40 p-4 text-black rounded-lg border-2 border-gray-400"
-          value={answers[currentIndex] || ""}
-          onChange={handleAnswerChange}
-          placeholder="Type your answer here..."
-        ></textarea>
-      </div>
-      <div className="flex gap-4 mt-6">
-        <button
-          onClick={prevQuestion}
-          disabled={currentIndex === 0}
-          className="bg-gray-500 px-4 py-2 rounded-lg hover:bg-gray-600 disabled:opacity-50"
-        >
-          ⬅ Previous
-        </button>
-        <button
-          onClick={nextQuestion}
-          disabled={currentIndex === questions.length - 1}
-          className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
-        >
-          Next ➡
-        </button>
-      </div>
-      <button
-        onClick={handleSubmit}
-        className="mt-6 bg-green-500 px-6 py-3 rounded-full hover:bg-green-600 text-lg"
-        disabled={loading}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900 p-6">
+      <motion.div
+        className="backdrop-blur-lg bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl text-center max-w-3xl w-full"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
       >
-        {loading ? "Submitting..." : "✅ Submit Interview"}
-      </button>
+        {!interviewStarted ? (
+          <>
+            <h1 className="text-4xl font-bold text-white mb-6">🎤 Interview Instructions</h1>
+            <p className="text-gray-300 mb-4">
+              Welcome to the Technical Interview. Please read the following instructions carefully:
+            </p>
+            <ul className="text-gray-300 mb-6 text-left list-disc pl-6">
+              <li>This interview is recorded via your webcam. Ensure your webcam is on.</li>
+              <li>You have 40 minutes to complete the interview.</li>
+              <li>More than two suspicious activities (e.g., looking away, leaving the frame, switching tabs, pasting) will result in automatic submission.</li>
+              <li>Questions will be read aloud by an animated avatar. Type your answers in the provided text box.</li>
+              <li>Pasting answers is not allowed; please type your responses.</li>
+            </ul>
+            <div className="flex flex-col items-center gap-6">
+              <div ref={animationContainerRef} className="w-64 h-64 bg-white/5 rounded-full p-2" />
+              <video ref={videoRef} autoPlay muted className="w-64 h-48 rounded-lg shadow-lg" />
+              <canvas ref={canvasRef} style={{ display: "none" }} />
+            </div>
+            <button
+              onClick={handleStartInterview}
+              className="mt-6 px-8 py-4 text-lg bg-green-500 hover:bg-green-600 text-white rounded-full transition-all duration-300 shadow-lg"
+              disabled={loading || !isWebcamOn}
+            >
+              {isWebcamOn ? "Start Interview" : "Waiting for Webcam..."}
+            </button>
+          </>
+        ) : (
+          <>
+            <h1 className="text-4xl font-bold text-white mb-4">🎤 Technical Interview</h1>
+            <p className="text-gray-300 mb-2">
+              Time remaining: <span className="font-bold">{formatTime(timeLeft)}</span> | Suspicious activities: {suspiciousActivity.length}/2
+            </p>
+            {suspiciousActivity.length > 0 && (
+              <p className="text-yellow-400 mb-4">
+                Suspicious activity detected: {suspiciousActivity.join(", ")}
+              </p>
+            )}
+            {error ? (
+              <p className="text-red-400 mt-4">{error}</p>
+            ) : questions.length === 0 ? (
+              <p className="text-gray-300 mt-4">{message || "Loading questions..."}</p>
+            ) : (
+              <div className="w-full flex flex-col items-center gap-6">
+                <div className="flex justify-center">
+                  <div ref={animationContainerRef} className="w-32 h-32 bg-white/5 rounded-full p-2" />
+                </div>
+                <h2 className="text-2xl font-semibold text-white">
+                  Question {currentQuestionIndex + 1} of {questions.length}
+                </h2>
+                <p className="text-xl text-white max-w-2xl text-center">{questions[currentQuestionIndex]}</p>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={readQuestion}
+                      className="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all duration-300"
+                      disabled={isSpeaking}
+                    >
+                      {isSpeaking ? "Reading..." : "Read Question Aloud"}
+                    </button>
+                    <button
+                      onClick={testVoice}
+                      className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-full transition-all duration-300"
+                      disabled={isSpeaking}
+                    >
+                      Test Voice
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  className="w-full max-w-[700px] h-96 p-4 text-lg text-black bg-white rounded-xl shadow-lg border-2 border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Type your answer here..."
+                  value={answers[currentQuestionIndex] || ""}
+                  onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
+                  onPaste={handlePaste}
+                  disabled={loading}
+                  required
+                />
+                <div className="flex justify-center gap-4 mt-4">
+                  {currentQuestionIndex < questions.length - 1 ? (
+                    <motion.button
+                      onClick={handleNextQuestion}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="px-6 py-3 text-lg bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-all duration-300"
+                      disabled={loading || !answers[currentQuestionIndex]?.trim()}
+                    >
+                      Next
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      onClick={handleSubmit}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="px-6 py-3 text-lg bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-all duration-300"
+                      disabled={loading || !answers[currentQuestionIndex]?.trim()}
+                    >
+                      {loading ? "Submitting..." : "Submit Answers"}
+                    </motion.button>
+                  )}
+                </div>
+              </div>
+            )}
+            {message && (
+              <motion.p
+                className="mt-4 text-lg font-bold text-red-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                {message}
+              </motion.p>
+            )}
+            <div className="flex justify-center mt-8">
+              <motion.button
+                onClick={() => router.push("/assignment")}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="px-6 py-3 bg-gray-500 text-white rounded-full shadow-lg hover:shadow-2xl transition-all"
+              >
+                Back
+              </motion.button>
+            </div>
+          </>
+        )}
+      </motion.div>
     </div>
   );
-};
-
-export default InterviewSessionPage;
+}

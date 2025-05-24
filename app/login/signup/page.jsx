@@ -13,7 +13,11 @@ const Signup = () => {
     phone_no: "",
     password: "",
     confirmPassword: "",
+    otp: "",
   });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -25,11 +29,77 @@ const Signup = () => {
     return /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
   };
 
+  // Handle OTP generation or resend
+  const handleGenerateOtp = async (isResend = false) => {
+    const email_id = formData.email_id.trim();
+    if (!email_id) {
+      alert("Please enter a valid email address!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("https://backend.talentbard.com/user/google-login/send-otp/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: { email: email_id } }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setOtpSent(true);
+        alert(isResend ? "OTP resent to your email!" : "OTP sent to your email!");
+      } else {
+        alert(data.error || `Failed to ${isResend ? "resend" : "send"} OTP. Please try again.`);
+      }
+    } catch (error) {
+      console.error("OTP Generation Error:", error);
+      alert(`Error ${isResend ? "resending" : "sending"} OTP. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle OTP verification
+  const handleVerifyOtp = async () => {
+    const email_id = formData.email_id.trim();
+    const otp = formData.otp.trim();
+    if (!email_id || !otp) {
+      alert("Please enter both email and OTP!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("https://backend.talentbard.com/user/google-login/verify-otp/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: { email: email_id, otp } }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setOtpVerified(true);
+        alert("OTP verified successfully!");
+      } else {
+        alert(data.error || "Invalid OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("OTP Verification Error:", error);
+      alert("Error verifying OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Form Data:", formData);
+    if (!otpVerified) {
+      alert("Please verify your email with OTP before signing up!");
+      return;
+    }
 
     // Trim and validate input values
     const full_name = formData.full_name.trim();
@@ -92,15 +162,27 @@ const Signup = () => {
       <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full text-center">
         {/* Toggle Freelancer / Company */}
         <div className="flex justify-center mb-5">
-          <button className={`px-4 py-2 rounded-l-xl text-xl font-semibold transition-all ${isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`} onClick={() => setIsFreelancer(true)}>
+          <button
+            className={`px-4 py-2 rounded-l-xl text-xl font-semibold transition-all ${
+              isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"
+            }`}
+            onClick={() => setIsFreelancer(true)}
+          >
             Freelancer
           </button>
-          <button className={`px-4 py-2 rounded-r-xl text-xl font-semibold transition-all ${!isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`} onClick={() => setIsFreelancer(false)}>
+          <button
+            className={`px-4 py-2 rounded-r-xl text-xl font-semibold transition-all ${
+              !isFreelancer ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"
+            }`}
+            onClick={() => setIsFreelancer(false)}
+          >
             Company
           </button>
         </div>
 
-        <h2 className="text-3xl font-extrabold text-gray-800 mb-2">{isFreelancer ? "Freelancer Signup" : "Company Signup"}</h2>
+        <h2 className="text-3xl font-extrabold text-gray-800 mb-2">
+          {isFreelancer ? "Freelancer Signup" : "Company Signup"}
+        </h2>
         <p className="text-gray-500 mb-5">Create Your {isFreelancer ? "Freelancer" : "Company"} Account</p>
 
         {/* Signup Form */}
@@ -115,26 +197,115 @@ const Signup = () => {
             required
           />
 
-          <input name="email_id" type="email" placeholder="Email Address" value={formData.email_id} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
+          {/* Email Input with Generate OTP Button */}
+          <div className="mb-3 flex items-center gap-2">
+            <input
+              name="email_id"
+              type="email"
+              placeholder="Email Address"
+              value={formData.email_id}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-xl"
+              required
+              disabled={otpVerified} // Disable email input after verification
+            />
+            <button
+              type="button"
+              onClick={() => handleGenerateOtp(false)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50"
+              disabled={loading || otpVerified}
+            >
+              {loading ? "Sending..." : "Generate OTP"}
+            </button>
+          </div>
 
-          <input name="phone_no" type="text" placeholder="Phone Number" value={formData.phone_no} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
+          {/* OTP Input, Verify, and Resend Buttons */}
+          {otpSent && !otpVerified && (
+            <div className="mb-3">
+              <div className="flex items-center gap-2">
+                <input
+                  name="otp"
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={formData.otp}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-xl"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyOtp}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? "Verifying..." : "Verify OTP"}
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleGenerateOtp(true)}
+                className="mt-2 text-indigo-600 font-semibold hover:underline disabled:opacity-50"
+                disabled={loading}
+              >
+                Resend OTP
+              </button>
+            </div>
+          )}
+
+          {otpVerified && (
+            <p className="mb-3 text-green-600">Email verified successfully!</p>
+          )}
+
+          <input
+            name="phone_no"
+            type="text"
+            placeholder="Phone Number"
+            value={formData.phone_no}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-3 border rounded-xl"
+            required
+          />
 
           {/* Password Field */}
           <div className="mb-3 relative">
-            <input name="password" type={showPassword ? "text" : "password"} placeholder="Password" value={formData.password} onChange={handleChange} className="w-full px-4 py-2 border rounded-xl" required />
-            <button type="button" className="absolute top-2 right-4 text-gray-500" onClick={() => setShowPassword(!showPassword)}>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-xl"
+              required
+            />
+            <button
+              type="button"
+              className="absolute top-2 right-4 text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
               {showPassword ? "🙈" : "👁️"}
             </button>
           </div>
 
-          <input name="confirmPassword" type="password" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} className="w-full px-4 py-2 mb-3 border rounded-xl" required />
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-3 border rounded-xl"
+            required
+          />
 
-          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded-xl text-lg font-semibold shadow-md hover:bg-indigo-700 transition-all">
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 rounded-xl text-lg font-semibold shadow-md hover:bg-indigo-700 transition-all disabled:opacity-50"
+            disabled={loading || !otpVerified}
+          >
             Sign Up
           </button>
         </form>
         <p className="text-gray-600 mt-3">
-           have an account?{" "}
+          Already have an account?{" "}
           <Link href="/login" className="text-indigo-500 font-semibold hover:underline">
             Sign In
           </Link>

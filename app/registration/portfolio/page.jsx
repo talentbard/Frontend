@@ -1,210 +1,205 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
-const MAX_LENGTH = 100; // Limit for database fields
+const API_URL = "https://backend.talentbard.com/talent/job-preferences/";
 
-const PortfolioReferences = () => {
+export default function JobPreferences() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [preferences, setPreferences] = useState({
+    jobTitle: "",
+    industry: "",
+    frameworks: "", // Store frameworks as comma-separated string
+    frameworkOptions: [], // Store entered frameworks as options
+  });
   const [authParams, setAuthParams] = useState({
     user_id: "",
     refresh_token: "",
     access_token: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [portfolio, setPortfolio] = useState({
-    resume: "",
-    projectLinks: [""],
-    references: [""],
-  });
-
+  // Load authentication data
   useEffect(() => {
-    const user_id = localStorage.getItem("user_id");
-    const refresh_token = localStorage.getItem("refresh_token");
-    const access_token = localStorage.getItem("access_token");
+    try {
+      const user_id = localStorage.getItem("user_id");
+      const refresh_token = localStorage.getItem("refresh_token");
+      const access_token = localStorage.getItem("access_token");
 
-    if (user_id && refresh_token && access_token) {
-      setAuthParams({ user_id, refresh_token, access_token });
+      console.log("Retrieved user_id:", user_id); // Debugging
+
+      if (user_id && refresh_token && access_token) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(user_id)) {
+          console.error("Invalid UUID format for user_id:", user_id);
+          alert("Invalid user ID format. Please log in again.");
+          router.push("/login");
+          return;
+        }
+        setAuthParams({ user_id, refresh_token, access_token });
+      } else {
+        console.error("Missing auth parameters:", { user_id, refresh_token, access_token });
+        alert("Authentication details missing. Please log in.");
+        router.push("/login");
+      }
+    } catch (error) {
+      console.error("Error loading authentication data:", error);
+      alert("Failed to load authentication data. Please log in again.");
+      router.push("/login");
     }
-  }, []);
-const handleFileChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  }, [router]);
 
-  if (file.size > 2 * 1024 * 1024) {
-    alert("File size should be under 2MB.");
-    return;
-  }
+  const handleChange = (field, value) => {
+    setPreferences({ ...preferences, [field]: value });
 
-  setPortfolio({ ...portfolio, resume: file }); // store actual file
-};
-
-  const handleChange = (index, type, value) => {
-    setPortfolio((prev) => {
-      const updatedList = [...prev[type]];
-      updatedList[index] = value.length > MAX_LENGTH ? value.substring(0, MAX_LENGTH) : value;
-      return { ...prev, [type]: updatedList };
-    });
+    // If user is entering frameworks, split and store them as options
+    if (field === "frameworks") {
+      const frameworkList = value.split(",").map((fw) => fw.trim()).filter((fw) => fw); // Remove empty strings
+      setPreferences((prev) => ({
+        ...prev,
+        frameworkOptions: frameworkList,
+      }));
+    }
   };
 
-  const addField = (type) => {
-    setPortfolio((prev) => ({
-      ...prev,
-      [type]: [...prev[type], ""],
-    }));
-  };
+  const handleNext = async () => {
+    if (!authParams.user_id || !authParams.access_token || !authParams.refresh_token) {
+      setError("Authentication error. Please log in again.");
+      alert("Authentication error. Please log in again.");
+      router.push("/login");
+      return;
+    }
 
-  const removeField = (index, type) => {
-    setPortfolio((prev) => {
-      const updatedList = [...prev[type]];
-      updatedList.splice(index, 1);
-      return { ...prev, [type]: updatedList };
-    });
+    if (!preferences.jobTitle || !preferences.industry) {
+      setError("Job title and industry are required.");
+      alert("Please fill in job title and industry.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const requestBody = {
+      auth_params: {
+        user_id: authParams.user_id,
+        refresh_token: authParams.refresh_token,
+      },
+      payload: {
+        job_title: preferences.jobTitle,
+        industry: preferences.industry,
+        frameworks: preferences.frameworkOptions,
+        user_id: authParams.user_id,
+      },
+    };
+
+    console.log("Sending job preferences payload:", JSON.stringify(requestBody, null, 2)); // Debugging
+
+    try {
+      const response = await axios.post(API_URL, requestBody, {
+        headers: {
+          "accesstoken": authParams.access_token,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Job Preferences Submission Success:", response.data);
+      alert("Job preferences submitted successfully! 🎉");
+      router.push("/quizz");
+    } catch (err) {
+      console.error("Job Preferences Submission Error:", err);
+      const errorMessage = err.response?.data?.error || err.message;
+      setError(`Failed to submit job preferences: ${errorMessage}`);
+      alert(`Failed to submit job preferences: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
-    router.push("/registration/work-experience");
+    router.push("/registration/language");
   };
 
- 
-  const handleNext = async () => {
-  const apiUrl = "https://backend.talentbard.com/talent/portfolio/";
-  setLoading(true);
-
-  try {
-    const formData = new FormData();
-    formData.append("user_id", authParams.user_id);
-    formData.append("refresh_token", authParams.refresh_token);
-
-    if (portfolio.resume) {
-      formData.append("resume", portfolio.resume); // Direct file append
-    }
-
-    portfolio.projectLinks.forEach((link, index) => {
-      formData.append(`project_links[${index}]`, link.substring(0, MAX_LENGTH));
-    });
-
-    portfolio.references.forEach((ref, index) => {
-      formData.append(`references[${index}]`, ref.substring(0, MAX_LENGTH));
-    });
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        accesstoken: authParams.access_token,
-        // NOTE: DO NOT set Content-Type manually for FormData
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to submit portfolio. Status: ${response.status}, Error: ${errorText}`);
-    }
-
-    alert("Portfolio submitted successfully! 🎉");
-    router.push("/registration/work-terms");
-
-  } catch (error) {
-    console.error("API Error:", error);
-    alert("Failed to submit portfolio. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-  
-  const convertFileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file); // Read as Data URL
-      reader.onload = () => resolve(reader.result); // Get full Base64 string
-      reader.onerror = (error) => reject(error);
-    });
-  };
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Portfolio & References</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Job Preferences</h2>
+      <p className="text-gray-600 mb-4">
+        <b>Your talent will be evaluated based on the job title, industry, and frameworks you provide below.</b>
+      </p>
+      {error && (
+        <p className="text-red-600 mb-4">{error}</p>
+      )}
+      {loading && (
+        <p className="text-yellow-600 mb-4">Submitting preferences, please wait...</p>
+      )}
 
-      {/* Resume Upload */}
+      {/* Job Title Input */}
       <div className="mb-4">
-        <label className="block font-medium text-gray-700">Upload Resume</label>
+        <label className="block font-medium text-gray-700">Job Title</label>
         <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={handleFileChange}
+          type="text"
+          placeholder="Enter job title (e.g., Full Stack Developer)"
+          value={preferences.jobTitle}
+          onChange={(e) => handleChange("jobTitle", e.target.value)}
           className="border p-2 rounded-md w-full"
+          disabled={loading}
         />
-       {portfolio.resume && (
-  <p className="mt-2 text-green-600">{portfolio.resume.name} uploaded</p>
-)}
-
       </div>
 
-      {/* Project Links */}
+      {/* Industry Selection */}
       <div className="mb-4">
-        <label className="block font-medium text-gray-700">Project Links</label>
-        {portfolio.projectLinks.map((link, index) => (
-          <div key={index} className="flex items-center gap-2 mt-2">
-            <input
-              type="url"
-              placeholder="Enter project link"
-              value={link}
-              onChange={(e) => handleChange(index, "projectLinks", e.target.value)}
-              className="border p-2 rounded-md w-full"
-            />
-            {index > 0 && (
-              <button
-                onClick={() => removeField(index, "projectLinks")}
-                className="text-red-600 font-bold"
-              >
-                ✖
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          onClick={() => addField("projectLinks")}
-          className="mt-2 text-blue-600 font-bold"
+        <label className="block font-medium text-gray-700">Industry</label>
+        <select
+          value={preferences.industry}
+          onChange={(e) => handleChange("industry", e.target.value)}
+          className="border p-2 rounded-md w-full"
+          disabled={loading}
         >
-          + Add More
-        </button>
+          <option value="">Select Industry</option>
+          <option value="IT">IT</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Finance">Finance</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Education">Education</option>
+          <option value="Sports">Sports</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
 
-      {/* References */}
+      {/* Frameworks Input */}
       <div className="mb-4">
-        <label className="block font-medium text-gray-700">References</label>
-        {portfolio.references.map((ref, index) => (
-          <div key={index} className="flex items-center gap-2 mt-2">
-            <input
-              type="text"
-              placeholder="Enter reference name & contact"
-              value={ref}
-              onChange={(e) => handleChange(index, "references", e.target.value)}
-              className="border p-2 rounded-md w-full"
-            />
-            {index > 0 && (
-              <button
-                onClick={() => removeField(index, "references")}
-                className="text-red-600 font-bold"
-              >
-                ✖
-              </button>
-            )}
+        <label className="block font-medium text-gray-700">Frameworks</label>
+        <input
+          type="text"
+          placeholder="Enter frameworks (comma-separated, e.g., React, Node.js, Django)"
+          value={preferences.frameworks}
+          onChange={(e) => handleChange("frameworks", e.target.value)}
+          className="border p-2 rounded-md w-full"
+          disabled={loading}
+        />
+        <p className="text-sm text-gray-500 mt-1">
+          Enter frameworks you are proficient in, separated by commas.
+        </p>
+        {preferences.frameworkOptions.length > 0 && (
+          <div className="mt-2">
+            <p className="text-sm font-medium text-gray-700">Selected Frameworks:</p>
+            <ul className="list-disc pl-5">
+              {preferences.frameworkOptions.map((fw, index) => (
+                <li key={index} className="text-gray-600">{fw}</li>
+              ))}
+            </ul>
           </div>
-        ))}
-        <button
-          onClick={() => addField("references")}
-          className="mt-2 text-blue-600 font-bold"
-        >
-          + Add More
-        </button>
+        )}
       </div>
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
-        <button className="px-6 py-2 border rounded-md hover:bg-gray-100" onClick={handleBack}>
+        <button
+          className="px-6 py-2 border rounded-md hover:bg-gray-100 disabled:opacity-50"
+          onClick={handleBack}
+          disabled={loading}
+        >
           Back
         </button>
         <button
@@ -217,6 +212,4 @@ const handleFileChange = (e) => {
       </div>
     </div>
   );
-};
-
-export default PortfolioReferences;
+}
