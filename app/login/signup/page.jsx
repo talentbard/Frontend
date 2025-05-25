@@ -1,3 +1,4 @@
+
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -149,7 +150,14 @@ const Signup = () => {
         alert("Signup successful! Redirecting to login...");
         router.push("/login");
       } else {
-        alert(data.error || "Signup failed. Please try again.");
+        // Check for email already exists error
+        let errorMessage = "Signup failed. Please try again.";
+        if (data.error && data.error.toLowerCase().includes("email")) {
+          errorMessage = "Email already exists";
+        } else if (data.email_id && Array.isArray(data.email_id) && data.email_id[0].toLowerCase().includes("already exists")) {
+          errorMessage = "Email already exists";
+        }
+        alert(errorMessage);
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -207,7 +215,7 @@ const Signup = () => {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-xl"
               required
-              disabled={otpVerified} // Disable email input after verification
+              disabled={otpVerified}
             />
             <button
               type="button"
