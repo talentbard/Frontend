@@ -39,7 +39,7 @@ const checkRegistrationStatus = async (userId, accessToken, refreshToken, isFree
       if (isFreelancer) {
         // Freelancer (Talent) logic
         console.log("Registration Status Response:", response.data);
-        if (statusId === 0) {
+        if (statusId === "0") {
           router.push("/registration/personal-info");
         } else if (statusId === "1") {
           router.push("/registration/skills");
