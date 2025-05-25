@@ -29,13 +29,22 @@ export default function InterviewPage() {
   const animationContainerRef = useRef(null);
   const raviVoiceRef = useRef(null);
 
-  // Sanitize input to prevent JSON parsing issues
+  // Sanitize input for JSON payload while preserving spaces and punctuation
   const sanitizeInput = (input) => {
-    if (typeof input !== "string") return "";
-    return input
-      .replace(/[\r\n]+/g, " ")
-      .replace(/"/g, '\\"')
-      .replace(/\t/g, " ");
+    if (input === null || input === undefined || typeof input !== "string") {
+      return "";
+    }
+    try {
+      return input
+        .replace(/[\r\n\t]+/g, " ") // Replace newlines and tabs with space
+        .replace(/"/g, '\\"') // Escape double quotes
+        .replace(/[\\]/g, "\\\\") // Escape backslashes
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove control characters
+        .trim(); // Remove leading/trailing whitespace
+    } catch (e) {
+      console.error("Sanitization error:", e.message, input);
+      return "";
+    }
   };
 
   // Prevent paste in textarea and log as suspicious activity
@@ -57,17 +66,22 @@ export default function InterviewPage() {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
         setAvailableVoices(voices);
-        console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+        console.log("Available voices:", voices.map((v) => `${v.name} (${v.lang})`));
         // Automatically select Microsoft Ravi
-        const raviVoiceIndex = voices.findIndex(voice => voice.name.includes("Microsoft Ravi"));
+        const raviVoiceIndex = voices.findIndex((voice) =>
+          voice.name.includes("Microsoft Ravi")
+        );
         if (raviVoiceIndex !== -1) {
           raviVoiceRef.current = voices[raviVoiceIndex];
           console.log("Automatically selected voice: Microsoft Ravi");
         } else {
-          const defaultVoiceIndex = voices.findIndex(v => v.lang === "en-US");
+          const defaultVoiceIndex = voices.findIndex((v) => v.lang === "en-US");
           if (defaultVoiceIndex !== -1) {
             raviVoiceRef.current = voices[defaultVoiceIndex];
-            console.log("Microsoft Ravi not found; defaulting to:", voices[defaultVoiceIndex].name);
+            console.log(
+              "Microsoft Ravi not found; defaulting to:",
+              voices[defaultVoiceIndex].name
+            );
           }
         }
       }
@@ -120,7 +134,9 @@ export default function InterviewPage() {
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance("This is a test of the metallic voice.");
+    const utterance = new SpeechSynthesisUtterance(
+      "This is a test of the metallic voice."
+    );
     utterance.lang = "en-IN"; // Match Ravi's language
     utterance.volume = 1.0;
 
@@ -133,7 +149,9 @@ export default function InterviewPage() {
       utterance.pitch = 2.0;
       utterance.rate = 0.6;
       console.log("Testing default voice with metallic adjustments");
-      setMessage("⚠️ Microsoft Ravi not found. Using default voice with metallic adjustments.");
+      setMessage(
+        "⚠️ Microsoft Ravi not found. Using default voice with metallic adjustments."
+      );
       setTimeout(() => setMessage(""), 5000);
     }
 
@@ -158,8 +176,15 @@ export default function InterviewPage() {
 
   // Read question using TTS with selected voice
   const readQuestion = () => {
-    if (!window.SpeechSynthesis || isSpeaking || !questions[currentQuestionIndex]) {
-      console.log("TTS skipped:", { isSpeaking, question: questions[currentQuestionIndex] });
+    if (
+      !window.SpeechSynthesis ||
+      isSpeaking ||
+      !questions[currentQuestionIndex]
+    ) {
+      console.log("TTS skipped:", {
+        isSpeaking,
+        question: questions[currentQuestionIndex],
+      });
       return;
     }
 
@@ -170,7 +195,9 @@ export default function InterviewPage() {
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(questions[currentQuestionIndex]);
+    const utterance = new SpeechSynthesisUtterance(
+      questions[currentQuestionIndex]
+    );
     utterance.lang = "en-IN"; // Match Ravi's language
     utterance.volume = 1.0;
 
@@ -183,7 +210,9 @@ export default function InterviewPage() {
       utterance.pitch = 2.0;
       utterance.rate = 0.6;
       console.log("Using default voice with metallic adjustments");
-      setMessage("⚠️ Microsoft Ravi not found. Using default voice with metallic adjustments.");
+      setMessage(
+        "⚠️ Microsoft Ravi not found. Using default voice with metallic adjustments."
+      );
       setTimeout(() => setMessage(""), 5000);
     }
 
@@ -267,7 +296,12 @@ export default function InterviewPage() {
 
   // Face and eye detection (OpenCV.js)
   const detectFacesAndEyesOpenCV = async () => {
-    if (videoRef.current && interviewStarted && openCVRef.current && canvasRef.current) {
+    if (
+      videoRef.current &&
+      interviewStarted &&
+      openCVRef.current &&
+      canvasRef.current
+    ) {
       try {
         const cv = openCVRef.current;
         const video = videoRef.current;
@@ -352,7 +386,10 @@ export default function InterviewPage() {
     if (interviewStarted) {
       const detectionInterval = setInterval(detectFacesAndEyesOpenCV, 5000);
       if (suspiciousActivity.length > 2) {
-        handleAutoSubmit("❌ Interview terminated due to multiple suspicious activities.");
+        handleAutoSubmit(
+          "❌ Interview terminated due to multiple suspicious activities.",
+          true
+        );
       }
       return () => clearInterval(detectionInterval);
     }
@@ -375,7 +412,7 @@ export default function InterviewPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "accesstoken": accessToken,
+          accesstoken: accessToken,
         },
         body: JSON.stringify({
           auth_params: { user_id: userId, refresh_token: refreshToken },
@@ -390,15 +427,20 @@ export default function InterviewPage() {
 
       const fetchedQuestions = data.payload.questions;
       if (!Array.isArray(fetchedQuestions) || fetchedQuestions.length !== 10) {
-        throw new Error(`Expected exactly 10 questions, got ${fetchedQuestions.length}`);
+        throw new Error(
+          `Expected exactly 10 questions, got ${fetchedQuestions.length}`
+        );
       }
 
+      // Store raw questions for display
       setQuestions(fetchedQuestions);
       setError(null);
     } catch (err) {
       console.error("Error fetching questions:", err.message);
       setError(err.message);
-      setMessage("❌ Failed to load interview questions. Please try again or contact support.");
+      setMessage(
+        "❌ Failed to load interview questions. Please try again or contact support."
+      );
     }
   };
 
@@ -421,7 +463,8 @@ export default function InterviewPage() {
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [interviewStarted]);
 
   // Timer logic
@@ -431,7 +474,7 @@ export default function InterviewPage() {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            handleAutoSubmit("⏰ Time's up! Submitting your answers...");
+            handleAutoSubmit("⏰ Time's up! Submitting your answers...", false);
             return 0;
           }
           return prev - 1;
@@ -453,7 +496,7 @@ export default function InterviewPage() {
     }));
   };
 
-  const handleAutoSubmit = async (message) => {
+  const handleAutoSubmit = async (message, isCheating = false) => {
     setMessage(message);
     setLoading(true);
 
@@ -477,27 +520,29 @@ export default function InterviewPage() {
         user_id: userId,
         answers: questions.map((question, index) => ({
           question: sanitizeInput(question),
-          answer: sanitizeInput(answers[index] || ""),
+          answer: isCheating
+            ? `Cheating detected: ${sanitizeInput(answers[index] || "")}`
+            : sanitizeInput(answers[index] || ""),
         })),
-        cheating_suspected: suspiciousActivity.length > 0,
+        cheating_suspected: suspiciousActivity.length > 0 || isCheating,
       },
     };
 
     try {
-      console.log("Submitting payload:", JSON.stringify(payload, null, 2));
-      try {
-        JSON.stringify(payload);
-      } catch (jsonError) {
-        throw new Error(`Invalid JSON payload: ${jsonError.message}`);
-      }
+      // Log payload for debugging
+      const payloadString = JSON.stringify(payload, null, 2);
+      console.log("Submitting payload:", payloadString);
+
+      // Validate JSON
+      JSON.stringify(payload);
 
       const response = await fetch(SUBMIT_ANSWERS_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "accesstoken": accessToken,
+          accesstoken: accessToken,
         },
-        body: JSON.stringify(payload),
+        body: payloadString,
       });
 
       const data = await response.json();
@@ -510,14 +555,61 @@ export default function InterviewPage() {
       }
 
       setMessage("✅ Interview answers submitted successfully! Redirecting...");
-      setTimeout(() => router.push("/submission-status?message=Interview submitted successfully!"), 2000);
+      setTimeout(() => router.push("/submission_status"), 2000);
     } catch (error) {
-      console.error("Error submitting answers:", error.message);
-      if (error.message.includes("401")) {
+      console.error("Error submitting answers:", error.message, error.stack);
+      setMessage(`❌ Error submitting answers: ${error.message}`);
+
+      // Fallback submission with minimal payload
+      if (error.message.includes("Expecting ',' delimiter")) {
+        console.log("Attempting fallback submission...");
+        const fallbackPayload = {
+          auth_params: {
+            user_id: userId,
+            refresh_token: refreshToken,
+          },
+          payload: {
+            user_id: userId,
+            answers: questions.map((question) => ({
+              question: sanitizeInput(question),
+              answer: isCheating ? "Cheating detected" : "",
+            })),
+            cheating_suspected: isCheating || suspiciousActivity.length > 0,
+          },
+        };
+
+        try {
+          const fallbackString = JSON.stringify(fallbackPayload);
+          console.log("Fallback payload:", fallbackString);
+          const fallbackResponse = await fetch(SUBMIT_ANSWERS_API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              accesstoken: accessToken,
+            },
+            body: fallbackString,
+          });
+
+          const fallbackData = await fallbackResponse.json();
+          if (!fallbackResponse.ok) {
+            throw new Error(
+              fallbackData.error || `Fallback submission failed with status ${fallbackResponse.status}`
+            );
+          }
+
+          setMessage("✅ Fallback submission successful! Redirecting...");
+          setTimeout(() => router.push("/submission_status"), 2000);
+        } catch (fallbackError) {
+          console.error("Fallback submission failed:", fallbackError.message);
+          setMessage(`❌ Fallback submission failed: ${fallbackError.message}`);
+          if (fallbackError.message.includes("401")) {
+            setMessage("❌ Unauthorized: Please log in again.");
+            router.push("/login");
+          }
+        }
+      } else if (error.message.includes("401")) {
         setMessage("❌ Unauthorized: Please log in again.");
         router.push("/login");
-      } else {
-        setMessage(`❌ Error submitting answers: ${error.message}`);
       }
     } finally {
       setLoading(false);
@@ -530,7 +622,10 @@ export default function InterviewPage() {
       setMessage("❌ Please provide an answer for the current question.");
       return;
     }
-    await handleAutoSubmit("✅ Interview answers submitted successfully! Redirecting...");
+    await handleAutoSubmit(
+      "✅ Interview answers submitted successfully! Redirecting...",
+      false
+    );
   };
 
   const handleStartInterview = () => {
@@ -573,13 +668,27 @@ export default function InterviewPage() {
             <ul className="text-gray-300 mb-6 text-left list-disc pl-6">
               <li>This interview is recorded via your webcam. Ensure your webcam is on.</li>
               <li>You have 40 minutes to complete the interview.</li>
-              <li>More than two suspicious activities (e.g., looking away, leaving the frame, switching tabs, pasting) will result in automatic submission.</li>
-              <li>Questions will be read aloud by an animated avatar. Type your answers in the provided text box.</li>
+              <li>
+                More than two suspicious activities (e.g., looking away, leaving the frame,
+                switching tabs, pasting) will result in automatic submission.
+              </li>
+              <li>
+                Questions will be read aloud by an animated avatar. Type your answers in the
+                provided text box.
+              </li>
               <li>Pasting answers is not allowed; please type your responses.</li>
             </ul>
             <div className="flex flex-col items-center gap-6">
-              <div ref={animationContainerRef} className="w-64 h-64 bg-white/5 rounded-full p-2" />
-              <video ref={videoRef} autoPlay muted className="w-64 h-48 rounded-lg shadow-lg" />
+              <div
+                ref={animationContainerRef}
+                className="w-64 h-64 bg-white/5 rounded-full p-2"
+              />
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                className="w-64 h-48 rounded-lg shadow-lg"
+              />
               <canvas ref={canvasRef} style={{ display: "none" }} />
             </div>
             <button
@@ -594,7 +703,8 @@ export default function InterviewPage() {
           <>
             <h1 className="text-4xl font-bold text-white mb-4">🎤 Technical Interview</h1>
             <p className="text-gray-300 mb-2">
-              Time remaining: <span className="font-bold">{formatTime(timeLeft)}</span> | Suspicious activities: {suspiciousActivity.length}/2
+              Time remaining: <span className="font-bold">{formatTime(timeLeft)}</span> |
+              Suspicious activities: {suspiciousActivity.length}/2
             </p>
             {suspiciousActivity.length > 0 && (
               <p className="text-yellow-400 mb-4">
@@ -608,12 +718,17 @@ export default function InterviewPage() {
             ) : (
               <div className="w-full flex flex-col items-center gap-6">
                 <div className="flex justify-center">
-                  <div ref={animationContainerRef} className="w-32 h-32 bg-white/5 rounded-full p-2" />
+                  <div
+                    ref={animationContainerRef}
+                    className="w-32 h-32 bg-white/5 rounded-full p-2"
+                  />
                 </div>
                 <h2 className="text-2xl font-semibold text-white">
                   Question {currentQuestionIndex + 1} of {questions.length}
                 </h2>
-                <p className="text-xl text-white max-w-2xl text-center">{questions[currentQuestionIndex]}</p>
+                <p className="text-xl text-white max-w-2xl text-center">
+                  {questions[currentQuestionIndex]}
+                </p>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex gap-2">
                     <button
@@ -623,13 +738,13 @@ export default function InterviewPage() {
                     >
                       {isSpeaking ? "Reading..." : "Read Question Aloud"}
                     </button>
-                    <button
+                    {/* <button
                       onClick={testVoice}
                       className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-full transition-all duration-300"
                       disabled={isSpeaking}
                     >
                       Test Voice
-                    </button>
+                    </button> */}
                   </div>
                 </div>
                 <textarea

@@ -56,7 +56,7 @@ const checkRegistrationStatus = async (userId, accessToken, refreshToken, isFree
         } else if (statusId === "7") {
           router.push("/registration/job-preferences");
         } else if (statusId === "8") {
-          router.push("/quizz"); // Fixed typo: quizz → quiz
+          router.push("/quiz");
         } else if (statusId === "9") {
           router.push("/assignment");
         } else if (statusId === "10") {
@@ -67,7 +67,7 @@ const checkRegistrationStatus = async (userId, accessToken, refreshToken, isFree
           router.push("/submission_status");
         } else {
           console.error("❌ Unknown status ID:", statusId);
-          router.push("/quizz"); // Fallback for unexpected status
+          router.push("/quiz"); // Fallback for unexpected status
         }
       } else {
         // Company logic

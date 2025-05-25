@@ -1,21 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function SubmissionStatusPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [message, setMessage] = useState("Your application is under process");
-
-  // Read the message from query parameters
-  useEffect(() => {
-    const msg = searchParams.get("message");
-    if (msg) {
-      setMessage(msg);
-    }
-  }, [searchParams]);
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900 p-6">
       <motion.div
@@ -25,8 +11,8 @@ export default function SubmissionStatusPage() {
         transition={{ duration: 0.6 }}
       >
         <h1 className="text-3xl font-bold text-white mb-4">Submission Status</h1>
-        <p className="text-xl text-gray-300 mb-6">{message}</p>
-        <div className="flex justify-center mb-6">
+        <p className="text-xl text-gray-300 mb-6">Your application is under process</p>
+        <div className="flex justify-center">
           <svg
             className="animate-spin h-10 w-10 text-white"
             xmlns="http://www.w3.org/2000/svg"
@@ -48,14 +34,6 @@ export default function SubmissionStatusPage() {
             />
           </svg>
         </div>
-        <motion.button
-          onClick={() => router.push("/dashboard")}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-all duration-300 shadow-lg"
-        >
-          Back to Dashboard
-        </motion.button>
       </motion.div>
     </div>
   );
