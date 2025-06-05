@@ -1410,7 +1410,7 @@ const handlePaste = (e) => {
       }
 
       setMessage("✅ Interview answers submitted successfully! Redirecting...");
-      setTimeout(() => router.push("/submission_status"), 2000);
+      setTimeout(() => router.push("/interview_schedule"), 2000);
     } catch (error) {
       console.error("Error submitting answers:", error.message, error.stack);
       setMessage(`❌ Error submitting answers: ${error.message}`);
