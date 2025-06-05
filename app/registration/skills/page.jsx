@@ -560,12 +560,13 @@ console.log("certificate",certificates);
             <option>Expert</option>
           </select>
           <input
-            type="number"
-            placeholder="Experience (years)"
-            value={skill.experience_years}
-            onChange={(e) => handleSkillChange(index, "experience_years", e.target.value)}
-            className="border p-2 rounded-md w-full"
-          />
+  type="number"
+  placeholder="Experience (years)"
+  value={skill.experience_years !== 0 ? skill.experience_years : ""}
+  onChange={(e) => handleSkillChange(index, "experience_years", e.target.value)}
+  className="border p-2 rounded-md w-full"
+/>
+
         </div>
       ))}
   

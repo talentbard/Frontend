@@ -27,6 +27,7 @@ export default function QuizPage() {
         const access_token = localStorage.getItem("access_token");
         const user_id = localStorage.getItem("user_id");
         const refresh_token = localStorage.getItem("refresh_token");
+        console.log(access_token);
 
         if (!access_token || !user_id || !refresh_token) {
           throw new Error("Authentication tokens are missing. Please log in again.");

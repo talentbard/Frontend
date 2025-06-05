@@ -10,9 +10,9 @@ export default function Page() {
     <div>
       <About />
       <Education/>
-      <Certificate></Certificate>
+      {/* <Certificate></Certificate> */}
       <Skills></Skills>
-      <Project></Project>
+      <Project></Project>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
       <Footer></Footer>
     </div>
   );

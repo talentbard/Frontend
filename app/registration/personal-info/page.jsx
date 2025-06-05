@@ -77,7 +77,7 @@ const PersonalInfo = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-6">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-xl border border-gray-200">
         <h2 className="text-3xl font-bold text-center text-gray-900">Talent Registration</h2>
-        <p className="text-gray-600 text-center mb-6">Please fill in your details to register as a freelancer</p>
+        <p className="text-gray-600 text-center mb-6">Please fill in your details to register as a Talent</p>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
@@ -116,8 +116,8 @@ const PersonalInfo = () => {
             </div>
           </div>
           <fieldset className="border p-4 rounded-lg">
-            <legend className="font-semibold text-gray-800">Freelancer or Studio Status</legend>
-            {['Part-time freelancer', 'Full-time freelancer', 'Small studio', 'Other'].map(option => (
+            <legend className="font-semibold text-gray-800">Talent or Studio Status</legend>
+            {['Part-time Talent', 'Full-time Talent', 'Small studio', 'Other'].map(option => (
               <label key={option} className="flex items-center gap-2">
                 <input type="radio" name="freelancerStatus" value={option} onChange={handleChange} className="accent-blue-600" />
                 {option}

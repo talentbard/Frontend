@@ -106,7 +106,7 @@ export default function JobPreferences() {
 
       console.log("Job Preferences Submission Success:", response.data);
       alert("Job preferences submitted successfully! 🎉");
-      router.push("/quizz");
+           router.push("/registration/work-terms");
     } catch (err) {
       console.error("Job Preferences Submission Error:", err);
       const errorMessage = err.response?.data?.error || err.message;
