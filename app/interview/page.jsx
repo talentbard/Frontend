@@ -1464,15 +1464,15 @@ const handlePaste = (e) => {
         }
       } else if (error.message.includes("401")) {
         setMessage("❌ Unauthorized: Please log in again.");
-        router.push("/login");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+        router.push("/login")
+      
+    } finally 
+      setLoading(false)
+    
+  }
 
-  const handleSubmit = async (e) => {
-    // Remove the spacebar prevention logic from here
+  const handleSubmit = async (e) => 
+    // Remove the spacebar prevention logic from her
     if (!answers[currentQuestionIndex]) {
       setMessage("❌ Please provide an answer for the current question.");
       return;
